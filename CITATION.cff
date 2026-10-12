@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use STYX-LAB in research or teaching, please cite this software."
+title: "STYX-LAB"
+version: 1.0.1
+authors:
+  - name: "raxwqx"
+type: software
+license: MIT
+repository-code: "https://github.com/raxwqx/STYX-LAB"
