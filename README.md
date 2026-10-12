@@ -1,189 +1,195 @@
-<h1 align="center">🕷️ STYX-LAB</h1>
+STYX-LAB 🕷️
+Local-first cybersecurity research and training laboratory.
+STYX-LAB combines a terminal control deck branded STYHQ, a local HTTP Security Headers exercise, and evidence-based JSON/Markdown reports. It is built for repeatable defensive learning: inspect a control, compare expected and observed behavior, and keep the result as evidence.
 
-<p align="center">
-  <strong>STYHQ // Local-First Cybersecurity Research &amp; Training</strong><br>
-  Reproducible security exercises · Evidence-based reports · Animated terminal control deck
-</p>
 
-<p align="center">
-  <a href="https://github.com/raxwqx/STYX-LAB/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/raxwqx/STYX-LAB/actions/workflows/tests.yml/badge.svg?branch=main"></a>
-  <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&amp;logoColor=white">
-  <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20dependencies-none-2ea44f">
-  <a href="https://github.com/raxwqx/STYX-LAB/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20Unix-lightgrey">
-</p>
 
-<p align="center"><em>A local security lab you can run, inspect, test, and learn from.</em></p>
 
-Table of contents
-- Overview
-- Highlights
+
+Safety first: The included HTTP lab binds only to 127.0.0.1. STYX-LAB is educational software, not a production web server or a complete security audit.
+
+Contents
+- Why STYX-LAB
+- Capabilities
 - STYHQ terminal control deck
 - HTTP Security Headers lab
-- Assessment and evidence reports
-- Requirements
+- Assessment and reports
+- Installation
 - Quick start
-- Automated tests and continuous integration
-- Architecture and project layout
-- Security model and responsible use
-- Limitations
+- Usage examples
+- Testing and CI
+- Architecture
+- Security scope and limitations
 - Troubleshooting
 - Documentation
 - Contributing
 - Roadmap
 - License
-Overview
-STYX-LAB is a local-first cybersecurity training project focused on the defensive workflow: define a security control, observe its behavior, validate the evidence, understand its limitations, and repeat the check after a change.
-The project combines three practical pieces:
-1. A terminal control deck branded as STYX-LAB / STYHQ. Its lock-opening startup sequence, neon panels, and status indicators provide a visual entry point to the lab.
-2. A local HTTP Security Headers exercise with baseline and secure profiles, designed to make the effect of browser security headers easy to compare.
-3. An assessment and reporting module that checks a running local STYX-LAB endpoint and exports the observed results in JSON and Markdown.
-The emphasis is reproducibility and transparent evidence rather than a large feature count. The project is intentionally small, uses Python's standard library at runtime, and is designed so a contributor can run the lab without needing an external target.
-Safety first: the included service binds only to the IPv4 loopback address, 127.0.0.1. STYX-LAB is educational software, not a production web server and not a complete security audit.
-
-Highlights
-Component	What it does
-STYHQ terminal control deck	Shows a lock-to-unlocked startup animation in interactive terminals, then opens a numbered command menu.
-Live service status	Checks the STYX-LAB health endpoint on the default secure and baseline ports.
-Secure profile	Adds the five configured training security headers to responses.
-Baseline profile	Deliberately omits those five headers so the response behaviors can be compared.
-Health endpoint	Reports service status, selected profile, and tool version as JSON.
-Header metadata endpoint	Exposes the expected header set for the selected training profile as JSON.
-Local assessment	Checks a selected loopback port, validates responses and header behavior, and summarizes pass/fail results.
-Evidence export	Writes a JSON report and a readable Markdown report.
-Automated tests	Exercises HTTP behavior, report output, terminal startup, argument validation, and required project files.
-Continuous integration	Configures GitHub Actions to run tests on Python 3.11, 3.12, and 3.13.
+Why STYX-LAB
+Security controls are easier to understand when their behavior is observable and repeatable. STYX-LAB keeps its first exercise intentionally small: run two local HTTP profiles, compare the response headers, validate the service's metadata, and export the checks as a report.
+- Local-first: the included web service and assessment target use IPv4 loopback (127.0.0.1).
+- Reproducible: baseline and secure profiles provide a controlled comparison.
+- Evidence-focused: the assessment records per-check results and writes JSON and Markdown reports.
+- Inspectable: the project uses Python's standard library at runtime, with no third-party runtime dependencies.
+- Testable: automated tests cover service behavior, reporting, and the terminal interface.
+- Clear boundaries: reports explain that passing the lab checks is not a guarantee that an application is secure.
+Capabilities
+Area	Current capability
+Terminal interface	STYX-LAB / STYHQ branded control deck with a lock-opening startup animation in interactive terminals.
+Service status	Health-based status checks for the default secure and baseline ports.
+Web training	Baseline and secure HTTP Security Headers profiles.
+HTTP endpoints	HTML home page, JSON health endpoint, JSON header metadata endpoint, and JSON 404 response.
+Assessment	Checks service reachability, profile metadata, and the five configured security headers.
+Reports	Structured JSON and readable Markdown output.
+Validation	Unit and integration tests plus Python compile checks in GitHub Actions.
 
 
 STYHQ terminal control deck
-Launch the interactive interface from the repository root:
+Start the control deck from the repository root:
 python3 lab/tui.py
-In an interactive terminal, the app plays a short lock-opening sequence before displaying the dashboard. The animation progresses through locked, initializing, verifying, releasing, unlocked, and access-granted states. After the animation, the panel shows service status, Python version, local time, and the command menu.
-The startup animation is visual only. It does not authenticate a user, unlock a real system, or provide an access-control boundary.
-Menu options
-Option	Action	What to expect
-1	Launch secure profile	Starts the secure HTTP training service on the chosen local port.
-2	Launch baseline profile	Starts the baseline comparison service on the chosen local port.
-3	Run automated tests	Runs the project's unittest suite and returns to the menu.
-4	Run local assessment + export reports	Checks a selected local STYX-LAB service and writes JSON and Markdown reports.
-5	Read scenario guide	Displays the HTTP Security Headers scenario documentation in the terminal.
-0	Exit control deck	Closes the interface.
+In an interactive terminal, startup displays a short sequence of states:
+🔒  GATE LOCKED
+🔒  INITIALIZING
+🔒  VERIFYING MODULES
+🔐  RELEASING LATCH
+🔓  GATE UNLOCKED
+🔓  ACCESS GRANTED
+
+STYX-LAB // CYBERSECURITY CONTROL DECK
+STYHQ // SECURITY HQ
+The lock animation is a visual introduction only. It does not authenticate users or provide a security boundary. When output is non-interactive, the interface skips animation delays to keep tests and logs predictable.
+Menu reference
+Key	Action	Description
+1	Launch secure profile	Starts the local server with the configured training headers.
+2	Launch baseline profile	Starts the comparison server without those five training headers.
+3	Run automated tests	Executes the test suite and reports the test process result.
+4	Run local assessment + export reports	Checks the selected local STYX-LAB port and writes reports.
+5	Read scenario guide	Displays the HTTP Security Headers exercise in the terminal.
+0	Exit control deck	Closes the terminal interface.
 
 
-The dashboard uses health responses, not just an open TCP port, to determine whether a service appears to be a STYX-LAB instance. The status display checks the default ports 8766 and 8765. If you start a service on a custom port, use that port when running an assessment.
-Animation and non-interactive mode
-When output is not attached to an interactive terminal, STYX-LAB skips the deliberate animation delays and prints a concise boot notice. This keeps automated tests and log output predictable. You can explicitly disable the animation:
+The dashboard checks the health endpoint on default ports 8766 (secure) and 8765 (baseline). If you start a server on a custom port, provide that port when running the assessment.
+Disable the startup animation when desired:
 STYXLAB_NO_ANIMATION=1 python3 lab/tui.py
-Color output respects the standard NO_COLOR environment variable.
+Color output respects the NO_COLOR environment variable.
 HTTP Security Headers lab
-The included server uses Python's built-in HTTP server classes. It does not require a web framework or additional runtime packages.
+The server is implemented with Python's built-in HTTP server classes. It does not need Flask, FastAPI, or other third-party runtime packages.
 Profiles
-Baseline is a teaching profile that intentionally omits the five headers under study. A passing baseline assessment means the lab behaved as documented; it does not mean the baseline is a safe production configuration.
-Secure applies the configured training header values. The profile demonstrates the controls and their observable effect. It is not a claim that every application is secure because it sends these headers.
-Security headers covered
-Header	Configured value or behavior	Learning purpose
-Content-Security-Policy	default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'	Demonstrates resource-source restrictions and framing policy. A real application must review its resource requirements before adopting a policy.
-X-Content-Type-Options	nosniff	Tells compatible browsers not to MIME-sniff the response.
-Referrer-Policy	strict-origin-when-cross-origin	Demonstrates limiting referrer information sent on cross-origin requests.
-Permissions-Policy	Disables camera, microphone, and geolocation for the page	Shows how browser capabilities can be restricted.
+- secure adds the five configured browser security headers.
+- baseline deliberately omits those five headers so you can observe the difference.
+A passing baseline assessment means the teaching profile behaved as documented. It does not mean the baseline configuration is suitable for production.
+Headers demonstrated
+Header	Configured value in secure	Learning objective
+Content-Security-Policy	default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'	Demonstrates content-source restrictions and a framing policy.
+X-Content-Type-Options	nosniff	Demonstrates disabling MIME sniffing in compatible browsers.
+Referrer-Policy	strict-origin-when-cross-origin	Demonstrates controlling referrer information sent across origins.
+Permissions-Policy	camera=(), microphone=(), geolocation=()	Demonstrates disabling selected browser capabilities for the page.
 X-Frame-Options	DENY	Demonstrates a framing restriction for compatible browsers.
 
 
-Both profiles also return Cache-Control: no-store. The exercise uses plain HTTP on loopback, so it does not set HSTS. HSTS belongs in a properly configured HTTPS deployment, not as a pretend fix for a local plain-HTTP exercise.
-Endpoints
+Both profiles also set Cache-Control: no-store. The exercise uses plain HTTP on loopback and intentionally does not set HSTS; HSTS is intended for appropriately configured HTTPS deployments. These headers complement secure coding and must be selected and tested for the needs of a real application.
+HTTP endpoints
 Endpoint	Method	Purpose
-/	GET	Serves a small HTML page identifying the active training profile.
-/health	GET	Returns JSON with status, profile, and version.
-/api/headers	GET	Returns JSON metadata describing the active profile and configured training headers.
-Any unknown path	GET	Returns HTTP 404 with a JSON error body.
+/	GET	Serves the local training page and identifies the selected profile.
+/health	GET	Returns JSON with service status, profile, and version.
+/api/headers	GET	Returns JSON metadata for the active profile and expected training headers.
+Unknown path	GET	Returns HTTP 404 with a JSON error.
 
 
-Run the secure profile
-Start the service in one terminal:
+Assessment and reports
+The assessment module checks one explicitly selected local STYX-LAB endpoint. It contacts 127.0.0.1 only: it does not scan networks, resolve remote hostnames, or contact external targets.
+What it checks
+For a valid STYX-LAB response, the assessment checks:
+1. Whether the header-metadata and health endpoints respond.
+2. Whether the health status and profile are valid.
+3. Whether the metadata profile agrees with the health profile.
+4. Whether the metadata header map matches the selected profile.
+5. Whether each of the five headers has its expected value, or is absent in the baseline profile.
+A complete response normally produces nine individual checks. If the endpoint is unavailable or returns invalid JSON, the report records the problem instead of treating the assessment as successful.
+Generate reports
+Start a profile first, for example:
 python3 lab/web/security_headers_lab.py --profile secure --port 8766
-Inspect the page response from another terminal:
-curl -i http://127.0.0.1:8766/
-Check health:
-curl -i http://127.0.0.1:8766/health
-Inspect profile metadata:
-curl -i http://127.0.0.1:8766/api/headers
-The health response contains a JSON object similar to:
-{
-  "status": "ok",
-  "profile": "secure",
-  "version": "1.0.1"
-}
-The exact header ordering and server date are handled by the HTTP server and may vary. Compare header names and values, not their printed order.
-Compare the baseline and secure profiles
-In a separate terminal, start the baseline profile:
-python3 lab/web/security_headers_lab.py --profile baseline --port 8765
-Then inspect both responses:
-curl -i http://127.0.0.1:8765/
-curl -i http://127.0.0.1:8766/
-The five training headers should be absent from the baseline response and present with the configured values in the secure response. Stop each server with Ctrl+C when finished.
-Assessment and evidence reports
-The assessment module checks a running local STYX-LAB instance on an explicitly selected port. It contacts only 127.0.0.1; it does not scan a network, resolve hostnames, or contact external systems.
-Run an assessment
-Keep the service running, then execute:
+Then, from a second terminal at the repository root, run:
 python3 -m lab.report --port 8766
-Or choose a separate output directory:
+Choose a separate output directory when you want to keep a demo report apart from the latest report:
 python3 -m lab.report --port 8766 --output-dir reports/demo
-By default, the module writes:
-- reports/latest-assessment.json — structured results suitable for inspection or later processing.
-- reports/latest-assessment.md — a readable report with the result, scope, profile, individual checks, and summary.
-The reports directory is generated at runtime and should be reviewed before committing or publishing a report. Reports contain a timestamp and a local target port.
-What the assessment checks
-The assessment validates that the selected endpoint responds like the STYX-LAB service, checks health/profile information, compares declared header metadata to the selected profile, and checks the five security headers against the configured expectations.
-The JSON report includes a schema version, tool version, creation timestamp, target, scope, per-check status and detail, overall status, and a summary of passed and failed checks when those checks can be completed.
-Possible outcomes include:
-- PASS: the local lab matched the expected behavior for the checks performed.
-- FAIL: one or more responses or header values did not match the expected behavior.
-- UNAVAILABLE: the selected endpoint did not return the required valid local responses.
-A baseline can correctly receive PASS because that profile is deliberately supposed to omit the five training headers. Read the profile and interpretation fields rather than treating PASS as a universal security rating.
-Evidence, not a guarantee: an assessment report records only the checks implemented by this training project against the selected local lab. It does not certify an application, host, or network as secure.
-
+By default, reports are written to:
+- reports/latest-assessment.json — machine-readable metadata and individual check results.
+- reports/latest-assessment.md — a human-readable summary, scope, observed evidence, and per-check results.
+The reports/ directory is generated at runtime. Inspect reports before sharing or committing them; they include a timestamp and local target port.
+Interpret the outcome correctly
+- PASS means the local lab matched the expected behavior for the checks performed.
+- FAIL means one or more returned values did not match expectations.
+- UNAVAILABLE means the required local service response could not be obtained or parsed.
+The baseline profile can correctly receive PASS because its documented behavior is to omit the five training headers. Always read the profile and interpretation in the report. This output is evidence about the training endpoint, not a full audit or certification of a real application.
+Example terminal output
+Illustrative output from a successful assessment; timestamps and the actual target port vary by run:
+Assessment result: PASS
+JSON report: reports/latest-assessment.json
+Markdown report: reports/latest-assessment.md
+An abbreviated JSON summary can look like this:
+{
+  "target": "http://127.0.0.1:8766",
+  "profile": "secure",
+  "status": "pass",
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  }
+}
+This is an example of the report shape, not a result collected from your machine. The live report files contain the actual checks and timestamp from your own run.
+Installation
 Requirements
 - Python 3.11 or newer.
-- curl is optional and used for manual HTTP inspection.
-- No third-party Python packages are required to run the application or unit tests.
-- A terminal is recommended for the full color and animation experience. Non-interactive execution is supported for testing and automation.
-Quick start
-Clone the repository:
+- curl is optional and used only for manual response inspection.
+- No third-party Python packages are required for the application or unit tests.
+- A terminal is recommended for the full color and animation experience.
+Option A: Clone with Git
 git clone https://github.com/raxwqx/STYX-LAB.git
 cd STYX-LAB
-Launch the control deck:
+Option B: Download the source ZIP
+Download the latest source ZIP from the main branch
+Extract the archive, enter the extracted STYX-LAB directory, and follow the quick-start instructions below. The GitHub source ZIP is a snapshot of the branch; it is not a compiled binary release.
+Quick start
+Launch the terminal control deck:
 python3 lab/tui.py
-Run the test suite directly:
+Run the automated suite directly:
 python3 -m unittest discover -s tests -v
-Applying a release ZIP to an existing checkout
-If you are applying a release ZIP to an existing Git checkout, extract the archive and run the included installer with the path to that checkout:
-bash /path/to/STYX-LAB-v1.0.1/install-to-repo.sh /path/to/STYX-LAB
-The helper is designed to back up files it replaces, preserve the target checkout's .git history, and run validation after copying. Read the script before using it, keep your own backup of important work, and inspect Git status and test results after installation. A regular Git clone does not need this helper.
-Automated tests and continuous integration
-Run the suite locally:
-python3 -m unittest discover -s tests -v
-Compile the application and tests:
+Compile-check application and test sources:
 python3 -m compileall -q lab tests
-The test suite covers:
-- Required project files and Python source parsing.
-- Loopback binding and invalid profile/port handling.
-- Secure header values and baseline header absence.
-- Health and header metadata endpoints.
-- Unknown-path behavior.
-- Assessment behavior against live test servers and unavailable ports.
-- JSON and Markdown report generation.
-- Terminal startup behavior, lock-opening states, STYHQ branding, and exit flow.
-GitHub Actions is configured to run the test suite and Python compile check on Python 3.11, 3.12, and 3.13. The Tests badge at the top links to the workflow page, where the actual result for each workflow run can be inspected. A configured matrix is not the same as a successful run; use the Actions page to confirm the latest run results.
-Architecture and project layout
-STYX-LAB separates the terminal interface, local HTTP service, report generation, documentation, and tests.
+Usage examples
+Run the secure profile
+In terminal 1:
+python3 lab/web/security_headers_lab.py --profile secure --port 8766
+In terminal 2:
+curl -i http://127.0.0.1:8766/
+curl -i http://127.0.0.1:8766/health
+curl -i http://127.0.0.1:8766/api/headers
+Compare against baseline
+In a separate terminal:
+python3 lab/web/security_headers_lab.py --profile baseline --port 8765
+Inspect both responses:
+curl -i http://127.0.0.1:8765/
+curl -i http://127.0.0.1:8766/
+Compare the header names and values rather than their order. Stop each running service with Ctrl+C. If a port is already in use, choose another available port and use it consistently in the matching assessment command.
+Run a report for baseline
+python3 -m lab.report --port 8765
+A baseline PASS only confirms the deliberate teaching behavior of that profile; it is not a production security recommendation.
+Testing and CI
+Run the complete test suite:
+python3 -m unittest discover -s tests -v
+Run a syntax/bytecode compile check:
+python3 -m compileall -q lab tests
+The test suite covers the HTTP profiles and headers, loopback binding, health and metadata endpoints, invalid profile/port values, unknown paths, assessment results, JSON/Markdown report writing, and terminal interface startup and animation behavior.
+GitHub Actions is configured to run tests and the compile check with Python 3.11, 3.12, and 3.13 on pushes and pull requests. Use the Actions page to confirm the current result for each matrix job; a configured workflow is not itself proof that every run passed.
+Architecture
+STYX-LAB keeps the user interface, HTTP lab, and report generation in separate modules:
 STYX-LAB/
-├── .github/
-│   └── workflows/
-│       └── tests.yml
+├── .github/workflows/tests.yml
 ├── docs/
 │   ├── ARCHITECTURE.md
-│   ├── methodology/
-│   │   └── README.md
+│   ├── methodology/README.md
 │   └── scenarios/
 │       ├── TEMPLATE.md
 │       └── web-security-headers.md
@@ -208,47 +214,38 @@ STYX-LAB/
 ├── ROADMAP.md
 ├── SECURITY.md
 └── install-to-repo.sh
-Component responsibilities
-- lab/tui.py — terminal presentation, startup animation, status checks, menu actions, and interactive navigation.
-- lab/web/security_headers_lab.py — loopback-only HTTP server and training endpoints.
-- lab/report.py — local assessment logic and JSON/Markdown report generation.
-- tests/ — regression tests for the implemented behaviors.
-- .github/workflows/tests.yml — automated test and compile checks.
-- docs/ — scenario instructions, methodology, architecture, and reusable template.
-For component boundaries and data flow, see [Architecture](docs/ARCHITECTURE.md).
-Security model and responsible use
-STYX-LAB is designed for local defensive training.
-- The HTTP server binds to IPv4 loopback rather than a network interface.
-- Assessment requests use the loopback address and a port selected by the user.
-- The included checks target the STYX-LAB training service, not arbitrary third-party systems.
-- The lock-opening animation is branding only and is not a security mechanism.
-- No real credentials are required for the included scenario.
-- A passing report applies only to the listed checks and the selected lab instance.
-Run the exercises only in environments you own or are explicitly authorized to test. Do not use the project to probe systems without permission, and do not expose the built-in training server to the public internet.
+Module	Responsibility
+lab/tui.py	Startup sequence, terminal panels, health-based status display, command routing, and interactive navigation.
+lab/web/security_headers_lab.py	Loopback-only HTTP server, training profiles, and HTTP endpoints.
+lab/report.py	Local endpoint assessment and JSON/Markdown evidence export.
+tests/	Regression tests for the currently implemented behavior.
+.github/workflows/tests.yml	Automated test and compile checks.
+docs/	Scenario instructions, methodology, and architecture notes.
+
+
+See [Architecture](docs/ARCHITECTURE.md) for component boundaries and data flow.
+Security scope and limitations
+STYX-LAB is currently a focused training platform for one web-security topic: HTTP Security Headers. The current release is not:
+- a full web application vulnerability scanner;
+- a general-purpose network scanner or packet analyzer;
+- a browser-based cross-browser test framework;
+- an authentication system or access-control gate;
+- a production-ready HTTP server;
+- a guarantee that an application is secure because its headers match the training profile;
+- a replacement for an authorized professional security review.
+The included server binds to 127.0.0.1, and assessment requests are limited to that loopback host. Do not expose the training service publicly or use the project to probe systems without authorization. The lock animation is branding only, not an access-control feature.
 For repository vulnerability reporting guidance, see [SECURITY.md](SECURITY.md).
-Limitations
-STYX-LAB is an early, intentionally narrow training platform. The current release demonstrates one web-security topic: HTTP security headers.
-It does not currently provide:
-- A full web application vulnerability scanner.
-- A general-purpose network scanner or packet analyzer.
-- Browser-based integration tests across multiple browsers.
-- Authentication or user accounts.
-- A production-ready HTTP server.
-- A guarantee that a real application is secure because its headers match this lab's values.
-- A replacement for an authorized professional security review.
-The report module evaluates the selected local STYX-LAB endpoint. It does not assess arbitrary URLs or remote targets. The configured Content Security Policy is a teaching policy and must be adapted and tested before use in a real application.
-These boundaries are deliberate: the included scenario should be easy to run, inspect, test, and understand before the project grows to cover additional scenarios.
 Troubleshooting
-The terminal says the port is already in use
-A service may already be listening on the requested port. Keep the existing service if it is the one you intend to use, or start another instance on a different available port and pass that port to the assessment command.
-The dashboard shows a service as offline
-The dashboard uses the STYX-LAB health response, not just an open TCP port. Start the corresponding profile and wait for it to print its local URL. If you used a non-default port, remember that the dashboard's fixed status display still checks 8766 and 8765.
-The assessment returns UNAVAILABLE
-Confirm that the intended STYX-LAB profile is running, check the port number, then inspect the JSON and Markdown reports for the recorded error. The assessment stays local and does not search for another service automatically.
-Colors or animation do not appear
-The lock animation and ANSI colors are intended for interactive terminals. Non-interactive execution and the STYXLAB_NO_ANIMATION environment variable disable the animated startup sequence. NO_COLOR disables color formatting.
-Tests pass locally but a CI workflow fails
-Open the GitHub Actions workflow linked by the Tests badge. Check the Python version and complete error output for the failing matrix job before claiming that the project passes on that version.
+A port is already in use
+An existing process may already be listening. Keep it if it is the intended lab service, or select another available port and pass the same port to the assessment command. Avoid stopping processes blindly; first identify what is using the port.
+The dashboard shows a lab as offline
+The dashboard uses the service health endpoint on the default ports 8766 and 8765. Start the chosen profile and wait for it to print its local URL. Services started on a custom port are not shown in those fixed dashboard indicators, but can still be assessed by specifying their port.
+The assessment is UNAVAILABLE
+Confirm the service is running, check the specified port, then open reports/latest-assessment.json or reports/latest-assessment.md and inspect the recorded error. The assessment does not search for another service automatically.
+Colors or animation are missing
+Run from an interactive terminal. Non-interactive mode and STYXLAB_NO_ANIMATION=1 skip startup animation; NO_COLOR disables ANSI color formatting.
+A CI job fails while local tests pass
+Open the Actions page, select the failed workflow run, and inspect the Python matrix version and full test output before claiming compatibility for that run.
 Documentation
 - [Architecture and data flow](docs/ARCHITECTURE.md)
 - [HTTP Security Headers scenario](docs/scenarios/web-security-headers.md)
@@ -256,20 +253,20 @@ Documentation
 - [Scenario template](docs/scenarios/TEMPLATE.md)
 - [Contributing guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
-- [Project roadmap](ROADMAP.md)
+- [Roadmap](ROADMAP.md)
 - [Changelog](CHANGELOG.md)
 - [Citation metadata](CITATION.cff)
 Contributing
 Contributions are welcome when they improve correctness, reproducibility, accessibility, test coverage, or defensive learning value.
-Before proposing a new scenario:
-1. Define the objective and local scope.
-2. State prerequisites and expected behavior.
-3. Provide repeatable steps and evidence to collect.
+Before adding a scenario:
+1. Define the objective, prerequisites, and local scope.
+2. State expected behavior before writing validation checks.
+3. Provide repeatable commands and the evidence to collect.
 4. Explain risk, remediation, limitations, and cleanup.
-5. Add tests for stable behavior where practical.
-Run the local test and compile checks before submitting a change. Keep changes focused, do not include credentials or personal data, and describe what your tests actually verified. See [CONTRIBUTING.md](CONTRIBUTING.md).
+5. Add automated tests for stable behavior where practical.
+Run the test suite and compile check before submitting. Keep changes focused, do not include credentials or personal data, and describe what your tests actually verified. See [CONTRIBUTING.md](CONTRIBUTING.md).
 Roadmap
-The roadmap lists potential future improvements rather than promising unfinished features. Current candidates include another self-contained defensive web scenario, optional report metadata, accessibility and terminal-width improvements, and example reports generated by tests.
-See [ROADMAP.md](ROADMAP.md) for the maintained list.
+Future candidates—not current features—include another self-contained defensive web scenario, optional report metadata, improved accessibility and terminal-width handling, and example reports generated by tests. See [ROADMAP.md](ROADMAP.md) for the maintained plan.
 License
-STYX-LAB is released under the MIT License. See LICENSE.
+STYX-LAB is released under the MIT License. See LICENSE for the full text.
+<p align="center"><strong>STYHQ // STYX-LAB</strong><br>Stay sharp. Stay defensive. 🛡️</p>
