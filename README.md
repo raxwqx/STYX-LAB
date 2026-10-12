@@ -1,4 +1,4 @@
-# STYX-LAB 🕷️
+# STYX-LAB 🧪
 
 Local-first cybersecurity training lab for HTTP security headers, written in Python.
 
