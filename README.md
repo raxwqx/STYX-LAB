@@ -264,6 +264,29 @@ Potential future improvements include additional self-contained defensive scenar
 
 These are future ideas, not features currently included. See [ROADMAP.md](ROADMAP.md).
 
+---
+
+## 🔭 Project Vision
+
+STYX-LAB is designed to grow beyond its current HTTP Security Headers training environment into a modular cybersecurity research platform.
+
+The long-term vision includes three main areas:
+
+### 🕵️ OSINT (Open-Source Intelligence)
+Tools and workflows for collecting, organizing, correlating, and analyzing publicly available information.
+
+### 🔬 Digital Forensics
+Capabilities for examining digital evidence, preserving file integrity, analyzing metadata, building timelines, and documenting findings.
+
+### 🛡️ Cybersecurity Laboratory
+A collection of isolated, educational environments and practical tools for learning, testing, and understanding cybersecurity concepts.
+
+### Our Goal
+
+To bring OSINT, digital forensics, and cybersecurity research together under one modular platform, with an emphasis on transparency, reproducibility, responsible research, and open-source development.
+
+**Development note:** These are long-term project goals. The current implementation focuses on HTTP Security Headers training and assessment. Future capabilities will be introduced gradually and documented as they become available.
+
 ## 🤝 Contributing
 
 Contributions are welcome.
