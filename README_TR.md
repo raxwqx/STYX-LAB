@@ -263,6 +263,29 @@ Gelecekte değerlendirilebilecek geliştirmeler arasında yeni savunma odaklı s
 
 Bunlar geleceğe yönelik fikirlerdir, mevcut sürümde bulunan özellikler değildir. Güncel plan için [ROADMAP.md](ROADMAP.md) dosyasına bak.
 
+---
+
+## 🔭 Proje Vizyonu
+
+STYX-LAB, mevcut HTTP Security Headers eğitim ortamının ötesine geçerek modüler bir siber güvenlik araştırma platformuna dönüşmek üzere tasarlanmaktadır.
+
+Uzun vadeli vizyonumuz üç temel alana odaklanmaktadır:
+
+### 🕵️ OSINT (Açık Kaynak İstihbaratı)
+Herkese açık kaynaklardan bilgi toplama, düzenleme, ilişkilendirme ve analiz etme süreçlerini destekleyen araçlar ve iş akışları.
+
+### 🔬 Dijital Adli Bilişim
+Dijital kanıtların incelenmesi, dosya bütünlüğünün korunması, metadata analizi, zaman çizelgelerinin oluşturulması ve bulguların belgelenmesine yönelik yetenekler.
+
+### 🛡️ Siber Güvenlik Laboratuvarı
+Siber güvenlik kavramlarını öğrenmek, test etmek ve anlamak için tasarlanmış izole eğitim ortamları ve uygulamalı araçlar.
+
+### Amacımız
+
+OSINT, dijital adli bilişim ve siber güvenlik araştırmalarını tek bir modüler platformda bir araya getirmek. Bu süreçte şeffaflık, tekrarlanabilir araştırma, sorumlu kullanım ve açık kaynak geliştirme ilkelerini esas almak.
+
+**Geliştirme notu:** Bunlar STYX-LAB'in uzun vadeli hedefleridir. Mevcut sürüm HTTP Security Headers eğitimi ve değerlendirmesine odaklanmaktadır. Yeni yetenekler geliştirildikçe aşamalı olarak projeye eklenecek ve belgelenecektir.
+
 ## 🤝 Katkıda Bulunma
 
 Katkılar memnuniyetle karşılanır.
