@@ -1,3 +1,10 @@
+<div align="center">
+  <img src="assets/styx-lab-logo.png"
+       alt="STYX-LAB Logo"
+       width="220">
+</div>
+
+---
 # 🧪 STYX-LAB
 
 <p align="center">
