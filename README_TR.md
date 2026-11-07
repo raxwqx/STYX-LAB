@@ -229,6 +229,8 @@ GitHub Actions, Python 3.11, 3.12 ve 3.13 sürümlerinde otomatik kontroller ger
 ```text
 STYX-LAB/
 ├── .github/workflows/tests.yml
+├── assets/
+│   └── styx-lab-logo.png
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── methodology/
