@@ -7,7 +7,7 @@
 ---
 
 
-# ⌬ STYX-LAB
+                           ⌬ STYX-LAB
 
 <p align="center">
   <strong>Local-first Cybersecurity Research & Training Laboratory</strong><br>
