@@ -5,7 +5,7 @@
 </div>
 
 ---
-# 🧪 STYX-LAB
+# ⌬ STYX-LAB
 
 <p align="center">
   <strong>Yerel Odaklı Siber Güvenlik Araştırma ve Eğitim Laboratuvarı</strong><br>
