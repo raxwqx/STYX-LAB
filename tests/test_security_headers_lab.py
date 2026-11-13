@@ -38,6 +38,11 @@ class SecurityHeadersLabTests(unittest.TestCase):
                     with self.subTest(header=name):
                         self.assertEqual(response.headers.get(name), expected)
 
+    def test_server_header_has_no_trailing_space(self):
+        with running_server("secure") as base:
+            with urlopen(base + "/", timeout=3) as response:
+                self.assertEqual(response.headers.get("Server"), "STYX-LAB/1.0")
+
     def test_baseline_omits_security_headers(self):
         with running_server("baseline") as base:
             with urlopen(base + "/", timeout=3) as response:

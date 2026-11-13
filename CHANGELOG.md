@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Fixed terminal box alignment: layout now measures display cells, so emoji
+  rows no longer push the right border one column out.
+- Hardened the control-deck health probe and the assessment tool against JSON
+  arrays, scalars, non-string profiles, and malformed HTTP responses instead of
+  crashing on startup.
+- Removed the trailing space from the `Server: STYX-LAB/1.0` response header.
+- `lab.report` now reports an unwritable output directory as a clean error and
+  exits with status 1 instead of printing a traceback.
+- `install-to-repo.sh` now ships `README_TR.md`, the logo, `FUNDING.yml`, and
+  itself, and refuses to run when source and target are the same repository.
+
 ## v1.0.1
 
 - Added a STYHQ-branded lock-to-unlocked startup sequence before the terminal dashboard.

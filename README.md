@@ -231,6 +231,8 @@ GitHub Actions runs automated checks with Python 3.11, 3.12, and 3.13.
 ```text
 STYX-LAB/
 ├── .github/workflows/tests.yml
+├── assets/
+│   └── styx-lab-logo.png
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── methodology/
@@ -245,6 +247,7 @@ STYX-LAB/
 ├── tests/
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
+├── install-to-repo.sh
 ├── LICENSE
 ├── pyproject.toml
 ├── README.md

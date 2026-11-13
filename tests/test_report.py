@@ -5,7 +5,9 @@ import socket
 import tempfile
 import threading
 import unittest
+from http.client import HTTPException
 from pathlib import Path
+from unittest.mock import patch
 
 from lab.report import assess, main as report_main, to_markdown, write_reports
 from lab.web.security_headers_lab import SECURITY_HEADERS, create_server
@@ -26,6 +28,12 @@ class AssessmentReportTests(unittest.TestCase):
         self.assertEqual(report["checks"][0]["status"], "fail")
         self.assertIn("127.0.0.1", report["target"])
 
+    def test_malformed_http_response_is_reported_as_unavailable(self):
+        with patch("lab.report.urlopen", side_effect=HTTPException("bad status line")):
+            report = assess(8766)
+        self.assertEqual(report["status"], "unavailable")
+        self.assertIn("Could not obtain", report["error"])
+
     def test_live_secure_lab_assessment_passes(self):
         server = create_server("secure", 0)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -35,6 +43,8 @@ class AssessmentReportTests(unittest.TestCase):
             self.assertEqual(report["status"], "pass")
             self.assertEqual(report["summary"]["failed"], 0)
             self.assertEqual(report["profile"], "secure")
+            # README documents nine checks for a complete valid response.
+            self.assertEqual(len(report["checks"]), 9)
         finally:
             server.shutdown()
             server.server_close()
@@ -92,6 +102,17 @@ class AssessmentReportTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=3)
+
+    def test_report_cli_reports_unwritable_output_directory(self):
+        with socket.socket() as sock:
+            sock.bind(("127.0.0.1", 0))
+            unused_port = sock.getsockname()[1]
+        with tempfile.NamedTemporaryFile() as handle:
+            output = io.StringIO()
+            with contextlib.redirect_stderr(output):
+                exit_code = report_main(["--port", str(unused_port), "--output-dir", handle.name])
+            self.assertEqual(exit_code, 1)
+            self.assertIn("could not write reports", output.getvalue())
 
     def test_writes_both_report_formats(self):
         report = {

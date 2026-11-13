@@ -2,9 +2,10 @@
 
 import argparse
 from datetime import datetime, timezone
+from http.client import HTTPException
 import json
 from pathlib import Path
-from urllib.error import URLError, HTTPError
+import sys
 from urllib.request import urlopen
 
 from lab.web.security_headers_lab import HOST, SECURITY_HEADERS, VERSION
@@ -33,7 +34,9 @@ def assess(port=8766, timeout=2):
     try:
         status, metadata, headers = _get_json(base + "/api/headers", timeout)
         health_status, health, _ = _get_json(base + "/health", timeout)
-    except (OSError, URLError, HTTPError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, HTTPException) as exc:
+        # URLError/HTTPError are OSError; JSONDecodeError is ValueError;
+        # malformed HTTP framing raises http.client.HTTPException.
         report["status"] = "unavailable"
         report["error"] = f"Could not obtain a valid local STYX-LAB response: {exc}"
         report["checks"].append({
@@ -172,7 +175,11 @@ def main(argv=None):
         report = assess(args.port)
     except ValueError as exc:
         parser.error(str(exc))
-    json_path, md_path = write_reports(report, args.output_dir)
+    try:
+        json_path, md_path = write_reports(report, args.output_dir)
+    except OSError as exc:
+        print(f"error: could not write reports: {exc}", file=sys.stderr)
+        return 1
     print(f"Assessment result: {report['status'].upper()}")
     print(f"JSON report: {json_path}")
     print(f"Markdown report: {md_path}")

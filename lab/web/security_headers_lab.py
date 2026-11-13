@@ -40,6 +40,10 @@ class SecurityHeadersHandler(BaseHTTPRequestHandler):
     server_version = "STYX-LAB/1.0"
     sys_version = ""
 
+    def version_string(self):
+        """Return the server token without BaseHTTPRequestHandler's trailing space."""
+        return self.server_version
+
     def _send(self, status, content_type, payload):
         body = payload if isinstance(payload, bytes) else payload.encode("utf-8")
         self.send_response(status)
@@ -105,10 +109,6 @@ class SecurityHeadersHandler(BaseHTTPRequestHandler):
 
     def do_HEAD(self):
         self.do_GET()
-
-    def log_message(self, format_string, *args):
-        """Keep request logs concise and avoid leaking remote network details."""
-        super().log_message(format_string, *args)
 
 
 def create_server(profile="secure", port=DEFAULT_PORT):

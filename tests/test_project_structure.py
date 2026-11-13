@@ -12,9 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class ProjectStructureTests(unittest.TestCase):
     def test_required_files_exist(self):
         required = [
-            "README.md", "LICENSE", "SECURITY.md", "CONTRIBUTING.md",
+            "README.md", "README_TR.md", "LICENSE", "SECURITY.md", "CONTRIBUTING.md",
             "CHANGELOG.md", ".gitignore", "pyproject.toml", "CITATION.cff",
-            "ROADMAP.md", "docs/ARCHITECTURE.md", ".github/workflows/tests.yml",
+            "ROADMAP.md", "install-to-repo.sh", "assets/styx-lab-logo.png",
+            "docs/ARCHITECTURE.md", ".github/FUNDING.yml", ".github/workflows/tests.yml",
             "docs/methodology/README.md", "docs/scenarios/TEMPLATE.md",
             "docs/scenarios/web-security-headers.md", "lab/__init__.py",
             "lab/web/__init__.py", "lab/web/security_headers_lab.py",
@@ -40,6 +41,17 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertEqual(__version__, "1.0.1")
         self.assertEqual(VERSION, __version__)
         self.assertEqual(APP_VERSION, __version__)
+
+    def test_install_script_covers_every_referenced_file(self):
+        script = (ROOT / "install-to-repo.sh").read_text(encoding="utf-8")
+        for name in (
+            "README_TR.md",
+            "assets/styx-lab-logo.png",
+            ".github/FUNDING.yml",
+            "install-to-repo.sh",
+        ):
+            with self.subTest(path=name):
+                self.assertIn(name, script, f"install-to-repo.sh omits {name}")
 
     def test_readme_describes_real_features(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

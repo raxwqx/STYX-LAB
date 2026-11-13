@@ -245,6 +245,7 @@ STYX-LAB/
 ├── tests/
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
+├── install-to-repo.sh
 ├── LICENSE
 ├── pyproject.toml
 ├── README.md

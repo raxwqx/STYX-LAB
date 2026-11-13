@@ -1,15 +1,16 @@
 """STYX-LAB animated terminal control deck with STYHQ branding."""
 
+import json
 import os
 import shutil
 import socket
 import subprocess
 import sys
 import time
+import unicodedata
+from http.client import HTTPException
 from pathlib import Path
-from urllib.error import URLError
 from urllib.request import urlopen
-import json
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER = ROOT / "lab" / "web" / "security_headers_lab.py"
@@ -24,6 +25,40 @@ DIM = "\033[90m"
 MAGENTA = "\033[95m"
 RESET = "\033[0m"
 APP_VERSION = "1.0.1"
+
+# Characters that occupy no terminal cell and must not count towards box width.
+_ZERO_WIDTH = {"\u200b", "\u200c", "\u200d", "\ufe0e", "\ufe0f"}
+
+
+def _cell_width(character):
+    """Return the number of terminal cells one character occupies."""
+    if character in _ZERO_WIDTH or unicodedata.combining(character):
+        return 0
+    return 2 if unicodedata.east_asian_width(character) in ("W", "F") else 1
+
+
+def display_width(text):
+    """Return the number of terminal cells *text* occupies.
+
+    ``len()`` counts code points, so emoji such as 🔒 measure one character but
+    render two cells wide. Box borders drift by one column per emoji row unless
+    layout math uses display width instead.
+    """
+    return sum(_cell_width(character) for character in str(text))
+
+
+def fit(text, width):
+    """Truncate or pad *text* to exactly *width* terminal cells."""
+    text = str(text)
+    kept = []
+    used = 0
+    for character in text:
+        cell = _cell_width(character)
+        if used + cell > width:
+            break
+        kept.append(character)
+        used += cell
+    return "".join(kept) + " " * (width - used)
 
 
 def color(text, code):
@@ -82,11 +117,8 @@ def unlock_splash():
 
     def row(text="", code=DIM):
         text = str(text)
-        if len(text) > inner:
-            text = text[:inner]
-        # Lock emoji can occupy two terminal cells; keep a little visual slack.
-        left = max(0, (inner - len(text)) // 2)
-        payload = (" " * left + text).ljust(inner)
+        left = max(0, (inner - display_width(text)) // 2)
+        payload = fit(" " * left + text, inner)
         print(color("║", CYAN) + " " + color(payload, code) + " " + color("║", CYAN))
 
     for lock_icon, state, detail, percent, state_color, delay in frames:
@@ -125,9 +157,16 @@ def health(port):
     try:
         with urlopen(f"http://127.0.0.1:{port}/health", timeout=0.6) as response:
             payload = json.loads(response.read().decode("utf-8"))
-            if response.status == 200 and payload.get("status") == "ok":
-                return payload.get("profile", "unknown")
-    except (OSError, URLError, ValueError, json.JSONDecodeError):
+            if (
+                isinstance(payload, dict)
+                and response.status == 200
+                and payload.get("status") == "ok"
+            ):
+                profile = payload.get("profile")
+                return profile if isinstance(profile, str) and profile else "unknown"
+    except (OSError, ValueError, HTTPException):
+        # URLError/HTTPError are OSError; JSONDecodeError is ValueError;
+        # malformed HTTP framing raises http.client.HTTPException.
         pass
     return None
 
@@ -137,12 +176,11 @@ def draw_box(title, lines):
     width = min(max(terminal_width - 2, 48), 84)
     inner = width - 4
     print(color("╭" + "─" * (width - 2) + "╮", CYAN))
-    heading = (" " + title + " ")[:inner].ljust(inner)
+    heading = fit(" " + title + " ", inner)
     print(color("│", CYAN) + " " + color(heading, CYAN) + " " + color("│", CYAN))
     print(color("├" + "─" * (width - 2) + "┤", CYAN))
     for text, code in lines:
-        text = str(text)[:inner].ljust(inner)
-        print(color("│", CYAN) + " " + color(text, code) + " " + color("│", CYAN))
+        print(color("│", CYAN) + " " + color(fit(text, inner), code) + " " + color("│", CYAN))
     print(color("╰" + "─" * (width - 2) + "╯", CYAN))
 
 
@@ -159,8 +197,14 @@ def dashboard():
     secure = health(8766)
     baseline = health(8765)
     draw_box("LIVE STATUS", [
-        (f"SECURE   127.0.0.1:8766  [{secure.upper() if secure else 'OFFLINE'}]", GREEN if secure else DIM),
-        (f"BASELINE 127.0.0.1:8765  [{baseline.upper() if baseline else 'OFFLINE'}]", GREEN if baseline else DIM),
+        (
+            f"SECURE   127.0.0.1:8766  [{secure.upper() if secure else 'OFFLINE'}]",
+            GREEN if secure else DIM,
+        ),
+        (
+            f"BASELINE 127.0.0.1:8765  [{baseline.upper() if baseline else 'OFFLINE'}]",
+            GREEN if baseline else DIM,
+        ),
         (f"PYTHON {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}", CYAN),
         (f"LOCAL TIME {time.strftime('%Y-%m-%d %H:%M:%S')}", DIM),
     ])
@@ -197,8 +241,8 @@ def launch_lab(profile, default_port):
         pause()
         return
     if port_open(port):
-        profile = health(port)
-        detail = f"STYX-LAB profile '{profile}' is responding" if profile else "another service may be using this port"
+        existing = health(port)
+        detail = f"STYX-LAB profile '{existing}' is responding" if existing else "another service may be using this port"
         print(color(f"Port {port} is already in use; {detail}. Choose another port.", YELLOW))
         pause()
         return
