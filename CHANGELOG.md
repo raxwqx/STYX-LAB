@@ -12,6 +12,8 @@
   exits with status 1 instead of printing a traceback.
 - `install-to-repo.sh` now ships `README_TR.md`, the logo, `FUNDING.yml`, and
   itself, and refuses to run when source and target are the same repository.
+- Updated CI to `actions/checkout@v7` and `actions/setup-python@v7` to clear
+  the Node.js 20 deprecation warnings.
 
 ## v1.0.1
 
