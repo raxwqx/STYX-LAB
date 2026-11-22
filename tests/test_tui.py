@@ -79,6 +79,7 @@ class TerminalInterfaceTests(unittest.TestCase):
         self.assertIn("STYHQ", result.stdout)
         self.assertIn("LOCK SEQUENCE SKIPPED", result.stdout)
         self.assertIn("COMMAND CENTER", result.stdout)
+        self.assertIn("Launch weak profile", result.stdout)
         self.assertIn("Stay sharp", result.stdout)
 
     def test_interactive_splash_animates_locked_to_unlocked(self):

@@ -25,10 +25,10 @@ FILES=(
   CITATION.cff CHANGELOG.md CONTRIBUTING.md LICENSE README.md README_TR.md
   ROADMAP.md SECURITY.md pyproject.toml assets/styx-lab-logo.png install-to-repo.sh
   docs/ARCHITECTURE.md docs/methodology/README.md docs/scenarios/TEMPLATE.md
-  docs/scenarios/web-security-headers.md lab/__init__.py lab/report.py lab/tui.py
-  lab/web/__init__.py lab/web/security_headers_lab.py
-  tests/test_project_structure.py tests/test_report.py tests/test_security_headers_lab.py
-  tests/test_tui.py
+  docs/scenarios/web-security-headers.md lab/__init__.py lab/headers.py
+  lab/report.py lab/tui.py lab/web/__init__.py lab/web/security_headers_lab.py
+  tests/test_headers.py tests/test_project_structure.py tests/test_report.py
+  tests/test_security_headers_lab.py tests/test_tui.py
 )
 
 VERSION="$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' "$SOURCE_ROOT/pyproject.toml" | head -n 1)"

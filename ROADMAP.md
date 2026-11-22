@@ -10,6 +10,13 @@ This roadmap describes possible follow-up work, not currently implemented featur
 - [x] JSON and Markdown evidence reports
 - [x] Automated tests and CI workflow
 
+## v1.1.0 baseline
+
+- [x] Three training profiles: baseline, secure, and weak
+- [x] Severity-ranked header findings with remediation hints
+- [x] `--fail-on` threshold for automation
+- [x] JSON and Markdown evidence reports
+
 ## Future candidates
 
 - [ ] Add another self-contained web defensive scenario with dedicated tests

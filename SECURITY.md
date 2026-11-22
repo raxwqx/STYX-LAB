@@ -5,9 +5,9 @@ STYX-LAB is educational software. Its lab server intentionally binds to
 
 ## Repository vulnerabilities
 
-Use GitHub's private vulnerability reporting feature if enabled. Otherwise,
-contact the maintainer privately where possible. Avoid publishing sensitive
-or exploitable details in public issues before coordinated remediation.
+Use GitHub's private vulnerability reporting feature, which is enabled for this
+repository, to disclose issues privately. Avoid publishing sensitive or
+exploitable details in public issues before coordinated remediation.
 
 ## Scope
 

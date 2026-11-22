@@ -46,16 +46,39 @@ The secure response should include:
 | `Permissions-Policy` | Restricts the listed browser features. |
 | `X-Frame-Options: DENY` | Adds a framing restriction for compatible browsers. |
 
+## Run the weak profile
+
+In a separate terminal:
+
+    python3 lab/web/security_headers_lab.py --profile weak --port 8767
+
+Inspect the response:
+
+    curl -i http://127.0.0.1:8767/
+
+Every training header is present, but the values are deliberately unsafe:
+a wildcard CSP with `unsafe-inline` and `unsafe-eval`, `sniff` instead of
+`nosniff`, `unsafe-url` referrer leakage, wildcard permissions, and an invalid
+`X-Frame-Options` value. This profile teaches why presence checks alone are
+not enough.
+
 ## Generate evidence reports
 
-With the secure profile running:
+With a profile running:
 
     python3 -m lab.report --port 8766
 
 This writes `reports/latest-assessment.json` and
-`reports/latest-assessment.md`. The assessment reports observed behavior;
-it is not a full application security audit. An unavailable service produces
-an `unavailable` result and a non-zero exit code.
+`reports/latest-assessment.md`. The report includes nine exact-match checks
+plus severity-ranked header findings with remediation hints. The assessment
+reports observed behavior; it is not a full application security audit. An
+unavailable service produces an `unavailable` result and a non-zero exit code.
+
+To fail automation when the weak profile is detected:
+
+    python3 -m lab.report --port 8767 --fail-on medium
+
+The report is written before the exit status is decided.
 
 ## Risk and remediation
 

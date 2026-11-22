@@ -11,8 +11,7 @@ from urllib.parse import urlsplit
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8766
-VERSION = "1.0.1"
-PROFILES = ("baseline", "secure")
+VERSION = "1.1.0"
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": (
@@ -24,6 +23,26 @@ SECURITY_HEADERS = {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
     "X-Frame-Options": "DENY",
 }
+
+# Deliberately weak values for teaching detection. All five headers are
+# present, so the configuration looks complete at a glance while still
+# allowing wildcard sources, inline script, and unsafe referrer leakage.
+WEAK_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src * 'unsafe-inline' 'unsafe-eval'; object-src *"
+    ),
+    "X-Content-Type-Options": "sniff",
+    "Referrer-Policy": "unsafe-url",
+    "Permissions-Policy": "camera=*, microphone=*, geolocation=*",
+    "X-Frame-Options": "ALLOWALL",
+}
+
+PROFILE_HEADERS = {
+    "baseline": {},
+    "secure": SECURITY_HEADERS,
+    "weak": WEAK_HEADERS,
+}
+PROFILES = tuple(PROFILE_HEADERS)
 
 
 class LabHTTPServer(ThreadingHTTPServer):
@@ -37,7 +56,7 @@ class SecurityHeadersHandler(BaseHTTPRequestHandler):
     """Serve local demonstration endpoints with a selected header profile."""
 
     profile = "secure"
-    server_version = "STYX-LAB/1.0"
+    server_version = f"STYX-LAB/{VERSION}"
     sys_version = ""
 
     def version_string(self):
@@ -50,9 +69,8 @@ class SecurityHeadersHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
-        if self.profile == "secure":
-            for name, value in SECURITY_HEADERS.items():
-                self.send_header(name, value)
+        for name, value in PROFILE_HEADERS[self.profile].items():
+            self.send_header(name, value)
         self.end_headers()
         if self.command != "HEAD":
             self.wfile.write(body)
@@ -92,10 +110,9 @@ class SecurityHeadersHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/headers":
-            present = SECURITY_HEADERS if self.profile == "secure" else {}
             body = json.dumps({
                 "profile": self.profile,
-                "headers": present,
+                "headers": PROFILE_HEADERS[self.profile],
                 "version": VERSION,
             }, sort_keys=True)
             self._send(200, "application/json; charset=utf-8", body)
@@ -117,7 +134,9 @@ def create_server(profile="secure", port=DEFAULT_PORT):
     Port 0 is accepted for tests to ask the OS for an ephemeral port.
     """
     if profile not in PROFILES:
-        raise ValueError("Profile must be 'baseline' or 'secure'.")
+        raise ValueError(
+            "Profile must be one of: " + ", ".join(PROFILES) + "."
+        )
     if type(port) is not int or not 0 <= port <= 65535:
         raise ValueError("Port must be an integer between 0 and 65535.")
 

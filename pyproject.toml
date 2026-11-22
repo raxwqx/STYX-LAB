@@ -1,12 +1,54 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "styx-lab"
-version = "1.0.1"
-description = "Local-first cybersecurity research and training laboratory"
+version = "1.1.0"
+description = "Local-first HTTP security headers laboratory with secure, baseline, and weak training profiles"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "raxwqx" }]
+keywords = [
+    "cybersecurity",
+    "security-headers",
+    "web-security",
+    "education",
+    "training",
+    "local-first",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Education",
+    "Topic :: Security",
+]
 dependencies = []
+
+[project.optional-dependencies]
+dev = []
+
+[project.urls]
+Homepage = "https://github.com/raxwqx/STYX-LAB"
+Repository = "https://github.com/raxwqx/STYX-LAB"
+Issues = "https://github.com/raxwqx/STYX-LAB/issues"
+
+[project.scripts]
+styx-lab = "lab.tui:main"
+styx-lab-report = "lab.report:main"
+styx-lab-server = "lab.web.security_headers_lab:main"
+
+[tool.setuptools.packages.find]
+include = ["lab*"]
 
 [tool.ruff]
 line-length = 100

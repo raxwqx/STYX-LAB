@@ -15,6 +15,7 @@ from urllib.request import urlopen
 ROOT = Path(__file__).resolve().parents[1]
 SERVER = ROOT / "lab" / "web" / "security_headers_lab.py"
 SCENARIO = ROOT / "docs" / "scenarios" / "web-security-headers.md"
+HOST_LABEL = "127.0.0.1"
 
 CYAN = "\033[96m"
 BLUE = "\033[94m"
@@ -24,7 +25,9 @@ YELLOW = "\033[93m"
 DIM = "\033[90m"
 MAGENTA = "\033[95m"
 RESET = "\033[0m"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.1.0"
+
+PROFILE_PORTS = {"secure": 8766, "baseline": 8765, "weak": 8767}
 
 # Characters that occupy no terminal cell and must not count towards box width.
 _ZERO_WIDTH = {"\u200b", "\u200c", "\u200d", "\ufe0e", "\ufe0f"}
@@ -171,6 +174,15 @@ def health(port):
     return None
 
 
+def _status_style(profile):
+    """Green only for a recognised lab profile; unknown states stay yellow."""
+    if profile in PROFILE_PORTS:
+        return GREEN
+    if profile:
+        return YELLOW
+    return DIM
+
+
 def draw_box(title, lines):
     terminal_width = shutil.get_terminal_size((80, 24)).columns
     width = min(max(terminal_width - 2, 48), 84)
@@ -194,26 +206,26 @@ def dashboard():
         ("   │  SECURITY HQ  │", MAGENTA),
         ("   ╰───────────────╯", MAGENTA),
     ])
-    secure = health(8766)
-    baseline = health(8765)
+    def status_line(profile):
+        port = PROFILE_PORTS[profile]
+        state = health(port)
+        shown = state.upper() if state else "OFFLINE"
+        return (f"{profile.upper():<8} {HOST_LABEL}:{port}  [{shown}]", _status_style(state))
+
     draw_box("LIVE STATUS", [
-        (
-            f"SECURE   127.0.0.1:8766  [{secure.upper() if secure else 'OFFLINE'}]",
-            GREEN if secure else DIM,
-        ),
-        (
-            f"BASELINE 127.0.0.1:8765  [{baseline.upper() if baseline else 'OFFLINE'}]",
-            GREEN if baseline else DIM,
-        ),
+        status_line("secure"),
+        status_line("baseline"),
+        status_line("weak"),
         (f"PYTHON {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}", CYAN),
         (f"LOCAL TIME {time.strftime('%Y-%m-%d %H:%M:%S')}", DIM),
     ])
     draw_box("COMMAND CENTER", [
         ("[1] Launch secure profile", GREEN),
         ("[2] Launch baseline profile", YELLOW),
-        ("[3] Run automated tests", CYAN),
-        ("[4] Run local assessment + export reports", CYAN),
-        ("[5] Read scenario guide", MAGENTA),
+        ("[3] Launch weak profile (detection practice)", RED),
+        ("[4] Run automated tests", CYAN),
+        ("[5] Run local assessment + export reports", CYAN),
+        ("[6] Read scenario guide", MAGENTA),
         ("[0] Exit control deck", DIM),
     ])
     return input(color("STYHQ // STYX-LAB", CYAN) + color(" > ", GREEN)).strip()
@@ -264,9 +276,9 @@ def run_tests():
 
 
 def run_assessment():
-    raw = input("Local port to assess [8766]: ").strip()
+    raw = input(f"Local port to assess [{PROFILE_PORTS['secure']}]: ").strip()
     try:
-        port = int(raw) if raw else 8766
+        port = int(raw) if raw else PROFILE_PORTS["secure"]
         if not 1 <= port <= 65535:
             raise ValueError
     except ValueError:
@@ -301,21 +313,23 @@ def main():
         try:
             choice = dashboard()
             if choice == "1":
-                launch_lab("secure", 8766)
+                launch_lab("secure", PROFILE_PORTS["secure"])
             elif choice == "2":
-                launch_lab("baseline", 8765)
+                launch_lab("baseline", PROFILE_PORTS["baseline"])
             elif choice == "3":
-                run_tests()
+                launch_lab("weak", PROFILE_PORTS["weak"])
             elif choice == "4":
-                run_assessment()
+                run_tests()
             elif choice == "5":
+                run_assessment()
+            elif choice == "6":
                 read_scenario()
             elif choice == "0":
                 animate("Closing STYHQ control deck", 6)
                 print(color("Stay sharp. Stay defensive. STYHQ / STYX-LAB.", GREEN))
                 return 0
             else:
-                print(color("Unknown option. Choose 0-5.", RED))
+                print(color("Unknown option. Choose 0-6.", RED))
                 time.sleep(0.8)
         except (KeyboardInterrupt, EOFError):
             print(color("\nSTYX-LAB interface closed.", YELLOW))
