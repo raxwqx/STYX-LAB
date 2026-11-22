@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use STYX-LAB in research or teaching, please cite this software."
 title: "STYX-LAB"
-version: 1.0.1
+version: 1.1.0
 authors:
   - name: "raxwqx"
 type: software

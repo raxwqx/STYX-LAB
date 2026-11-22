@@ -18,8 +18,9 @@ class ProjectStructureTests(unittest.TestCase):
             "docs/ARCHITECTURE.md", ".github/FUNDING.yml", ".github/workflows/tests.yml",
             "docs/methodology/README.md", "docs/scenarios/TEMPLATE.md",
             "docs/scenarios/web-security-headers.md", "lab/__init__.py",
-            "lab/web/__init__.py", "lab/web/security_headers_lab.py",
-            "lab/report.py", "lab/tui.py", "tests/test_tui.py", "tests/test_project_structure.py",
+            "lab/headers.py", "lab/web/__init__.py", "lab/web/security_headers_lab.py",
+            "lab/report.py", "lab/tui.py", "tests/test_headers.py",
+            "tests/test_tui.py", "tests/test_project_structure.py",
             "tests/test_security_headers_lab.py", "tests/test_report.py",
         ]
         for name in required:
@@ -38,7 +39,7 @@ class ProjectStructureTests(unittest.TestCase):
                 ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
     def test_release_versions_are_consistent(self):
-        self.assertEqual(__version__, "1.0.1")
+        self.assertEqual(__version__, "1.1.0")
         self.assertEqual(VERSION, __version__)
         self.assertEqual(APP_VERSION, __version__)
 
@@ -55,7 +56,14 @@ class ProjectStructureTests(unittest.TestCase):
 
     def test_readme_describes_real_features(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        for phrase in ("lab/tui.py", "lab.report", "127.0.0.1", "unittest"):
+        for phrase in (
+            "lab/tui.py",
+            "lab.report",
+            "127.0.0.1",
+            "unittest",
+            "weak",
+            "--fail-on",
+        ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, readme)
 

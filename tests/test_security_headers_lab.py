@@ -5,7 +5,14 @@ from contextlib import contextmanager
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-from lab.web.security_headers_lab import HOST, SECURITY_HEADERS, create_server
+from lab.web.security_headers_lab import (
+    HOST,
+    PROFILES,
+    SECURITY_HEADERS,
+    VERSION,
+    WEAK_HEADERS,
+    create_server,
+)
 
 
 @contextmanager
@@ -30,6 +37,9 @@ class SecurityHeadersLabTests(unittest.TestCase):
         finally:
             server.server_close()
 
+    def test_profiles_include_secure_baseline_and_weak(self):
+        self.assertEqual(PROFILES, ("baseline", "secure", "weak"))
+
     def test_secure_profile_sets_all_security_headers(self):
         with running_server("secure") as base:
             with urlopen(base + "/", timeout=3) as response:
@@ -38,10 +48,10 @@ class SecurityHeadersLabTests(unittest.TestCase):
                     with self.subTest(header=name):
                         self.assertEqual(response.headers.get(name), expected)
 
-    def test_server_header_has_no_trailing_space(self):
+    def test_server_header_has_no_trailing_space_and_tracks_version(self):
         with running_server("secure") as base:
             with urlopen(base + "/", timeout=3) as response:
-                self.assertEqual(response.headers.get("Server"), "STYX-LAB/1.0")
+                self.assertEqual(response.headers.get("Server"), f"STYX-LAB/{VERSION}")
 
     def test_baseline_omits_security_headers(self):
         with running_server("baseline") as base:
@@ -51,21 +61,36 @@ class SecurityHeadersLabTests(unittest.TestCase):
                     with self.subTest(header=name):
                         self.assertIsNone(response.headers.get(name))
 
+    def test_weak_profile_sends_weak_but_present_headers(self):
+        with running_server("weak") as base:
+            with urlopen(base + "/", timeout=3) as response:
+                self.assertEqual(response.status, 200)
+                for name, expected in WEAK_HEADERS.items():
+                    with self.subTest(header=name):
+                        self.assertEqual(response.headers.get(name), expected)
+
     def test_health_endpoint_reports_profile_and_version(self):
-        for profile in ("baseline", "secure"):
+        for profile in PROFILES:
             with self.subTest(profile=profile), running_server(profile) as base:
                 with urlopen(base + "/health", timeout=3) as response:
                     payload = json.load(response)
                     self.assertEqual(response.status, 200)
                     self.assertEqual(payload["status"], "ok")
                     self.assertEqual(payload["profile"], profile)
-                    self.assertEqual(payload["version"], "1.0.1")
+                    self.assertEqual(payload["version"], VERSION)
 
     def test_headers_metadata_endpoint(self):
-        with running_server("secure") as base:
-            with urlopen(base + "/api/headers", timeout=3) as response:
-                payload = json.load(response)
-                self.assertEqual(payload["headers"], SECURITY_HEADERS)
+        expected = {
+            "baseline": {},
+            "secure": SECURITY_HEADERS,
+            "weak": WEAK_HEADERS,
+        }
+        for profile, headers in expected.items():
+            with self.subTest(profile=profile), running_server(profile) as base:
+                with urlopen(base + "/api/headers", timeout=3) as response:
+                    payload = json.load(response)
+                    self.assertEqual(payload["profile"], profile)
+                    self.assertEqual(payload["headers"], headers)
 
     def test_unknown_path_returns_json_404(self):
         with running_server("secure") as base:

@@ -9,4 +9,7 @@ venv/
 .coverage
 htmlcov/
 reports/
+build/
+dist/
+*.egg-info/
 .DS_Store

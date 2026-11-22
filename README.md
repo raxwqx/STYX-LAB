@@ -37,7 +37,7 @@
 
 **STYX-LAB** is an open-source cybersecurity research and training laboratory focused on practical, reproducible, and responsible security learning.
 
-The current implementation provides a local HTTP Security Headers environment built with Python. It lets learners compare two server configurations, inspect HTTP responses, perform local assessments, and generate structured evidence reports.
+The current implementation provides a local HTTP Security Headers environment built with Python. It lets learners compare three server configurations, inspect HTTP responses, perform local assessments, and generate structured evidence reports.
 
 > Understand the behavior. Verify the evidence. Document the result.
 
@@ -46,8 +46,9 @@ The current implementation provides a local HTTP Security Headers environment bu
 | Component | Description |
 |:--|:--|
 | 🖥️ Terminal Control Deck | Interactive terminal interface |
-| 🌐 HTTP Security Lab | Local HTTP server with two profiles |
+| 🌐 HTTP Security Lab | Local HTTP server with three profiles |
 | 🔐 Security Headers | Demonstrates five HTTP response headers |
+| 🧪 Graded Findings | Severity-ranked analysis of header quality |
 | 📊 Assessment Engine | Local configuration and response checks |
 | 📁 Evidence Reports | JSON and Markdown report generation |
 | 🧪 Automated Testing | Unit and integration tests |
@@ -55,12 +56,13 @@ The current implementation provides a local HTTP Security Headers environment bu
 
 ## 🔬 Current Research Scenario: HTTP Security Headers
 
-STYX-LAB currently includes two comparison profiles:
+STYX-LAB currently includes three comparison profiles:
 
 | Profile | Description |
 |:--|:--|
 | `secure` | Sends the configured training security headers |
 | `baseline` | Deliberately omits the five demonstrated headers |
+| `weak` | Sends all five headers with deliberately unsafe values |
 
 Headers demonstrated:
 
@@ -70,7 +72,7 @@ Headers demonstrated:
 - `Permissions-Policy`
 - `X-Frame-Options`
 
-Both profiles use `Cache-Control: no-store`. The `baseline` profile is for comparison only, not production use.
+All profiles use `Cache-Control: no-store`. The `baseline` and `weak` profiles are for comparison only, not production use. The `weak` profile is useful for practicing detection: every header is present, so a presence-only check looks clean while the graded findings show real weaknesses.
 
 ### Assessment workflow
 
@@ -88,6 +90,9 @@ Both profiles use `Cache-Control: no-store`. The `baseline` profile is for compa
                |
                v
        Compare expected values
+               |
+               v
+       Analyze header quality
                |
                v
           Record evidence
@@ -124,10 +129,11 @@ cd STYX-LAB
 python3 lab/tui.py
 ```
 
-### 3. Start the secure profile directly
+### 3. Start a lab profile directly
 
 ```bash
 python3 lab/web/security_headers_lab.py --profile secure --port 8766
+python3 lab/web/security_headers_lab.py --profile weak --port 8767
 ```
 
 ### 4. Inspect the local service
@@ -162,12 +168,13 @@ Run `python3 lab/tui.py` from the repository root.
 |:--:|:--|
 | `1` | Launch secure profile |
 | `2` | Launch baseline profile |
-| `3` | Run automated tests |
-| `4` | Run local assessment |
-| `5` | Read scenario guide |
+| `3` | Launch weak profile (detection practice) |
+| `4` | Run automated tests |
+| `5` | Run local assessment |
+| `6` | Read scenario guide |
 | `0` | Exit |
 
-Default ports: secure `8766`, baseline `8765`.
+Default ports: secure `8766`, baseline `8765`, weak `8767`.
 
 Optional settings:
 
@@ -199,7 +206,24 @@ The assessment tool checks:
 4. Header metadata.
 5. Expected values or absence of the five training headers.
 
-A complete valid response normally produces nine individual checks.
+A complete valid response normally produces nine individual checks. If the
+local response cannot be obtained or parsed, the result is `UNAVAILABLE`.
+
+### Graded header findings
+
+Presence is not quality. After the exact-match checks, the assessment analyzes
+the header values actually sent and produces severity-ranked findings:
+
+| Severity | Example |
+|:--|:--|
+| `HIGH` | CSP wildcard sources such as `default-src *` |
+| `MEDIUM` | CSP `unsafe-inline` / `unsafe-eval`, invalid `X-Frame-Options`, `Referrer-Policy: unsafe-url`, wildcard `Permissions-Policy` |
+| `LOW` | Missing headers, missing `frame-ancestors`, non-`nosniff` content type options |
+| `INFO` | Obsolete `ALLOW-FROM` syntax |
+
+Every finding includes the affected header, a short explanation, and a
+remediation hint. The `weak` profile is designed to trigger them while the
+`secure` profile produces none.
 
 | Status | Meaning |
 |:--|:--|
@@ -207,11 +231,32 @@ A complete valid response normally produces nine individual checks.
 | `FAIL` | One or more checks did not match |
 | `UNAVAILABLE` | Required local response could not be obtained or parsed |
 
+### Automation with `--fail-on`
+
+By default, findings are reported without changing the exit status. For CI or
+scripts, `--fail-on` fails the run when a finding meets a threshold:
+
+```bash
+python3 -m lab.report --port 8767 --fail-on medium
+```
+
+| Value | Effect |
+|:--|:--|
+| `none` | Never fail because of findings (default) |
+| `low` | Fail on LOW or worse |
+| `medium` | Fail on MEDIUM or worse |
+| `high` | Fail on HIGH or worse |
+| `critical` | Fail on CRITICAL only |
+
+The report is still written when the threshold trips, so evidence is preserved.
+
 Generate reports in a separate directory:
 
 ```bash
-python3 -m lab.report --port 8766 --output-dir reports/demo
+python3 -m lab.report --port 8766 --output-dir reports/demo --timeout 5
 ```
+
+`--timeout` applies to each local request (default `2` seconds, maximum `30`).
 
 Review reports before publishing them. They may contain environment information that should remain private.
 
@@ -239,6 +284,7 @@ STYX-LAB/
 │   └── scenarios/
 ├── lab/
 │   ├── __init__.py
+│   ├── headers.py
 │   ├── report.py
 │   ├── tui.py
 │   └── web/
