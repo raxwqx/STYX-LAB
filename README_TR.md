@@ -1,154 +1,209 @@
 <div align="center">
-  <img src="assets/styx-lab-logo.png"
-       alt="STYX-LAB Logo"
-       width="220">
+  <img src="assets/hero.svg" alt="STYX-LAB — yerel odaklı HTTP güvenlik başlıkları laboratuvarı" width="100%">
+</div>
+
+<div align="center">
+
+[English](README.md) &nbsp;·&nbsp; **Türkçe**
+
+[![tests](https://img.shields.io/github/actions/workflow/status/raxwqx/STYX-LAB/tests.yml?branch=main&style=flat-square&label=tests&labelColor=14243A)](https://github.com/raxwqx/STYX-LAB/actions/workflows/tests.yml)
+[![release](https://img.shields.io/github/v/release/raxwqx/STYX-LAB?style=flat-square&labelColor=14243A&color=F2E8D5)](https://github.com/raxwqx/STYX-LAB/releases)
+[![python](https://img.shields.io/badge/python-3.11%2B-F2E8D5?style=flat-square&labelColor=14243A&logo=python&logoColor=14243A)](pyproject.toml)
+[![license](https://img.shields.io/badge/license-MIT-F2E8D5?style=flat-square&labelColor=14243A)](LICENSE)
+
 </div>
 
 ---
-# ⌬ STYX-LAB
 
-<p align="center">
-  <strong>Yerel Odaklı Siber Güvenlik Araştırma ve Eğitim Laboratuvarı</strong><br>
-  Öğren. Analiz Et. Doğrula. Belgele.
-</p>
+> Makinenizden çıkmayan bir güvenlik başlıkları laboratuvarı.
+>
+> ◆ &nbsp;Tek loopback sunucusunda üç profil.
+> ◆ &nbsp;Varlık kontrolü artı dereceli bulgular.
+> ◆ &nbsp;Arşivleyebileceğiniz JSON ve Markdown kanıtları.
 
-<p align="center">
-  <a href="README.md">🇬🇧 English</a> · <a href="README_TR.md">🇹🇷 Türkçe</a>
-</p>
+<div align="center">
+  <img src="assets/demo.gif" alt="Gerçek bir terminal kaydı: weak profili açılıyor, başlıklar inceleniyor ve dereceli rapor medium eşiğini tetikliyor" width="880">
+</div>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11%2B-14243A?style=for-the-badge&logo=python&logoColor=F2E8D5" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/Platform-Linux-14243A?style=for-the-badge&logo=linux&logoColor=F2E8D5" alt="Linux">
-  <img src="https://img.shields.io/badge/License-MIT-14243A?style=for-the-badge&logo=opensourceinitiative&logoColor=F2E8D5" alt="MIT Lisansı">
-  <img src="https://img.shields.io/badge/Runtime%20Dependencies-None-14243A?style=for-the-badge&logo=python&logoColor=F2E8D5" alt="Harici bağımlılık yok">
-</p>
-
-<p align="center">
-  <a href="https://github.com/raxwqx/STYX-LAB/actions/workflows/tests.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/raxwqx/STYX-LAB/tests.yml?branch=main&style=for-the-badge&label=Python%20CI&color=14243A&logo=githubactions&logoColor=F2E8D5" alt="Python CI">
-  </a>
-</p>
+<div align="center"><sub>GIF bir mock-up değil. CLI'nın kendi çıktısından <code>tools/make_assets.py</code> ile üretildi.</sub></div>
 
 ---
 
-## ◈ Hakkında
+## Nedir?
 
-**STYX-LAB**, uygulamalı, tekrarlanabilir ve sorumlu siber güvenlik öğrenimine odaklanan açık kaynaklı bir araştırma ve eğitim laboratuvarıdır.
+STYX-LAB, yerel çalışan bir HTTP güvenlik başlıkları laboratuvarıdır. Aynı küçük
+sayfayı üç profilde sunar — `secure`, `baseline` ve `weak` — böylece gerçek yanıtı
+inceleyebilir, dokuz yerel kontrol çalıştırabilir, başlık değerlerini
+derecelendirebilir ve sonucu JSON ile Markdown olarak yazabilirsiniz.
 
-Mevcut sürüm, Python ile geliştirilmiş yerel bir HTTP Security Headers ortamı sunar. Kullanıcıların üç sunucu yapılandırmasını karşılaştırmasına, HTTP yanıtlarını incelemesine, yerel değerlendirmeler yapmasına ve kanıta dayalı raporlar oluşturmasına olanak tanır.
+`127.0.0.1` dışına hiçbir şey taranmaz, çözümlenmez veya gönderilmez. Container
+yok, dış hedef yok, çalışma zamanı bağımlılığı yok.
 
-> Davranışı anla. Kanıtı doğrula. Sonucu belgele.
+<div align="center">
+  <img src="assets/pipeline.svg" alt="Değerlendirme akışı: profil, yerel sunucu, başlık incelemesi, derecelendirmeli dokuz kontrol, JSON ve Markdown raporları" width="100%">
+</div>
 
-## ✦ Proje Özellikleri
+<div align="center"><sub>Her aşama yerel bir adım. Alttaki kural, çıktıyı yayınlanabilir kılan kısım.</sub></div>
 
-| Bileşen | Açıklama |
+---
+
+## Profiller
+
+| Profil | Varsayılan port | Davranış |
+|:--|:--:|:--|
+| `secure` | `8766` | Tanımlı eğitim güvenlik başlıklarını gönderir |
+| `baseline` | `8765` | Beş eğitim başlığını göndermez |
+| `weak` | `8767` | Beş başlığı da bilerek güvensiz değerlerle gönderir |
+
+Üçü de `Cache-Control: no-store` gönderir. `baseline` ve `weak` karşılaştırma
+profilleridir; dağıtım şablonu değildir.
+
+Alıştırma için asıl faydalı olan `weak`: her başlık mevcut olduğu için yalnızca
+varlığa bakan bir kontrol temiz görünür, derecelendirici ise değerlerin neden
+tehlikeli olduğunu gösterir. Laboratuvarın anlatmak istediği fark budur.
+
+### Beş başlık
+
+| Başlık | `secure` değeri | `weak` değeri |
+|:--|:--|:--|
+| `Content-Security-Policy` | `default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'` | `default-src * 'unsafe-inline' 'unsafe-eval'; object-src *` |
+| `X-Content-Type-Options` | `nosniff` | `sniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | `unsafe-url` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | `camera=*, microphone=*, geolocation=*` |
+| `X-Frame-Options` | `DENY` | `ALLOWALL` |
+
+---
+
+## Hızlı başlangıç
+
+Python 3.11 veya üstü. Üçüncü taraf çalışma zamanı paketi yok; `curl` isteğe
+bağlı.
+
+```console
+$ git clone https://github.com/raxwqx/STYX-LAB.git
+$ cd STYX-LAB
+$ python3 lab/web/security_headers_lab.py --profile secure --port 8766
+STYX-LAB 1.1.0 | profile=secure
+STYHQ local node: http://127.0.0.1:8766/
+Press Ctrl+C to stop.
+```
+
+İkinci bir terminalde sunucunun gerçekten gönderdiği başlıkları okuyun:
+
+```console
+$ curl -sI 127.0.0.1:8766 | grep -E 'HTTP|Server|Content-Security|X-Frame|Referrer'
+HTTP/1.0 200 OK
+Server: STYX-LAB/1.1.0
+Content-Security-Policy: default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: DENY
+```
+
+Ardından çalışan profili değerlendirin:
+
+```console
+$ python3 -m lab.report --port 8766
+Assessment result: PASS
+Header findings: 0
+Fail-on: none
+JSON report: reports/latest-assessment.json
+Markdown report: reports/latest-assessment.md
+```
+
+### `weak` profili üzerinde tespit alıştırması
+
+```console
+$ python3 lab/web/security_headers_lab.py --profile weak --port 8767
+STYX-LAB 1.1.0 | profile=weak
+STYHQ local node: http://127.0.0.1:8767/
+Press Ctrl+C to stop.
+```
+
+```console
+$ curl -sI 127.0.0.1:8767 | grep -E 'HTTP|Server|Content-Security|X-Frame|Referrer'
+HTTP/1.0 200 OK
+Server: STYX-LAB/1.1.0
+Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval'; object-src *
+Referrer-Policy: unsafe-url
+X-Frame-Options: ALLOWALL
+```
+
+```console
+$ python3 -m lab.report --port 8767 --fail-on medium
+error: --fail-on medium: findings at or above 'medium' severity were detected
+Assessment result: PASS
+Header findings: 8
+Fail-on: medium
+JSON report: reports/latest-assessment.json
+Markdown report: reports/latest-assessment.md
+$ echo $?
+1
+```
+
+Eşik tetiklendiğinde rapor yine de yazılır; böylece kanıt, başarısız kapıya
+rağmen korunur.
+
+### Kontrol paneli
+
+Menü tercih ederseniz depo kökünde `python3 lab/tui.py` çalıştırın.
+
+| Tuş | Eylem |
+|:--:|:--|
+| `1` | `secure` profilini başlat |
+| `2` | `baseline` profilini başlat |
+| `3` | `weak` profilini başlat |
+| `4` | Test paketini çalıştır |
+| `5` | Yerel değerlendirme çalıştır |
+| `6` | Senaryo rehberini oku |
+| `0` | Çık |
+
+`STYXLAB_NO_ANIMATION=1` ve `NO_COLOR=1` desteklenir. Açılıştaki kilit
+animasyonu marka görselidir; kimlik doğrulama veya erişim kontrolü değildir.
+
+---
+
+## Dereceli bulgular
+
+Başlığın var olması, doğru olduğu anlamına gelmez. Tam eşleşme kontrolleri
+laboratuvarın tanımlı profil gibi davranıp davranmadığını sorar; derecelendirici
+ise tanımlı değerlerin güvenli olup olmadığını. `weak` profiline karşı gerçek bir
+koşunun ürettiği bulgular:
+
+| Önem | Başlık | Bulgu |
+|:--|:--|:--|
+| **HIGH** | `Content-Security-Policy` | CSP, `default-src` ve `object-src` içinde her kaynağa (`*`) izin veriyor |
+| **MEDIUM** | `X-Frame-Options` | X-Frame-Options geçersiz bir değer taşıyor: `ALLOWALL` |
+| **MEDIUM** | `Referrer-Policy` | Referrer-Policy `unsafe-url` kullanıyor ve tam URL'leri sızdırıyor |
+| **LOW** | `X-Content-Type-Options` | X-Content-Type-Options `nosniff` değil, `sniff` |
+
+Toplam sekiz bulgu: **1 HIGH, 5 MEDIUM, 2 LOW**. `secure` profili hiç bulgu
+üretmez.
+
+| Durum | Anlamı |
 |:--|:--|
-| 🖥️ Terminal Kontrol Paneli | Etkileşimli terminal arayüzü |
-| 🌐 HTTP Güvenlik Laboratuvarı | Üç profile sahip yerel HTTP sunucusu |
-| 🔐 Güvenlik Başlıkları | Beş HTTP yanıt başlığının gösterimi |
-| 🔎 Dereceli Bulgular | Başlık kalitesinin önem dereceli analizi |
-| 📊 Değerlendirme Motoru | Yerel yapılandırma ve yanıt kontrolleri |
-| 📁 Kanıt Raporları | JSON ve Markdown raporları |
-| 🧪 Otomatik Testler | Birim ve entegrasyon testleri |
-| ⚙️ GitHub Actions | Otomatik CI kontrolleri |
+| `PASS` | Laboratuvar tanımlı profiliyle eşleşti |
+| `FAIL` | Bir veya daha fazla kontrol eşleşmedi |
+| `UNAVAILABLE` | Yerel yanıt alınamadı veya ayrıştırılamadı |
 
-## 🔬 Mevcut Araştırma Senaryosu: HTTP Security Headers
+`PASS` bir güvenlik denetimi değildir. `weak` profili dokuz kontrolün hepsinden
+geçer ve yine de sekiz bulgu üretir — ders bu farktadır.
 
-STYX-LAB şu anda üç karşılaştırma profili içerir:
+### `--fail-on` eşiği
 
-| Profil | Açıklama |
+Bulgular varsayılan olarak çıkış kodunu değiştirmez. CI veya betikler için eşik
+belirleyin:
+
+| Değer | Etki |
 |:--|:--|
-| `secure` | Yapılandırılmış eğitim güvenlik başlıklarını gönderir |
-| `baseline` | Gösterilen beş güvenlik başlığını bilerek göndermez |
-| `weak` | Beş başlığın tümünü bilerek güvensiz değerlerle gönderir |
+| `none` | Bulgu yüzünden asla başarısız olma (varsayılan) |
+| `low` | LOW ve üstünde başarısız ol |
+| `medium` | MEDIUM ve üstünde başarısız ol |
+| `high` | HIGH ve üstünde başarısız ol |
+| `critical` | Yalnızca CRITICAL için başarısız ol |
 
-Gösterilen başlıklar:
+---
 
-- `Content-Security-Policy`
-- `X-Content-Type-Options`
-- `Referrer-Policy`
-- `Permissions-Policy`
-- `X-Frame-Options`
-
-Tüm profiller `Cache-Control: no-store` kullanır. `baseline` ve `weak` profilleri yalnızca karşılaştırma içindir, üretim ortamı için değildir. `weak` profili tespit pratiği için kullanışlıdır: beş başlık da mevcut olduğu için yalnızca varlığa bakan bir kontrol temiz görünür, dereceli bulgular ise gerçek zayıflıkları gösterir.
-
-### Değerlendirme akışı
-
-```text
-       Laboratuvar profilini seç
-                 |
-                 v
-        Yerel HTTP servisini başlat
-                 |
-                 v
-          HTTP yanıtlarını incele
-                 |
-                 v
-          Yerel değerlendirmeyi çalıştır
-                 |
-                 v
-           Beklenen değerleri karşılaştır
-                 |
-                 v
-           Başlık kalitesini analiz et
-                 |
-                 v
-              Kanıtları kaydet
-                 |
-            _____|_____
-           |           |
-           v           v
-        JSON raporu  Markdown raporu
-```
-
-**Analist notu:** Başarılı bir değerlendirme yalnızca yerel laboratuvarın yapılan kontroller kapsamında beklendiği gibi davrandığını gösterir. Gerçek bir uygulamanın güvenli olduğunu kanıtlamaz.
-
-## ⚡ Hızlı Başlangıç
-
-### Gereksinimler
-
-- Python 3.11 veya üzeri
-- Linux veya desteklenen başka bir Python ortamı
-- Terminal erişimi
-- `curl` (isteğe bağlı)
-
-Üçüncü taraf Python çalışma zamanı paketleri gerekli değildir.
-
-### 1. Depoyu klonla
-
-```bash
-git clone https://github.com/raxwqx/STYX-LAB.git
-cd STYX-LAB
-```
-
-### 2. Terminal kontrol panelini başlat
-
-```bash
-python3 lab/tui.py
-```
-
-### 3. Bir laboratuvar profilini doğrudan başlat
-
-```bash
-python3 lab/web/security_headers_lab.py --profile secure --port 8766
-python3 lab/web/security_headers_lab.py --profile weak --port 8767
-```
-
-### 4. Yerel servisi incele
-
-```bash
-curl -i http://127.0.0.1:8766/
-curl -i http://127.0.0.1:8766/health
-curl -i http://127.0.0.1:8766/api/headers
-```
-
-### 5. Değerlendirme raporu oluştur
-
-```bash
-python3 -m lab.report --port 8766
-```
-
-Varsayılan rapor dosyaları:
+## Raporlar
 
 ```text
 reports/
@@ -156,212 +211,104 @@ reports/
 └── latest-assessment.md
 ```
 
-İşlem tamamlandığında sunucuyu `Ctrl+C` ile durdur.
+JSON raporu araç sürümünü, hedefi, profili, kapsamı, kanıtıyla birlikte her
+kontrolü, bulgu özetini ve düzeltme ipucuyla birlikte her bulguyu kaydeder.
+Markdown raporu aynı kanıtı incelenebilir bir tablo olarak sunar.
 
-## 🧭 Terminal Kontrol Paneli
-
-Depo kök dizininde `python3 lab/tui.py` komutunu çalıştır.
-
-| Tuş | İşlem |
-|:--:|:--|
-| `1` | Secure profilini başlat |
-| `2` | Baseline profilini başlat |
-| `3` | Weak profilini başlat (tespit pratiği) |
-| `4` | Otomatik testleri çalıştır |
-| `5` | Yerel değerlendirme yap |
-| `6` | Senaryo rehberini görüntüle |
-| `0` | Çıkış |
-
-Varsayılan portlar: secure `8766`, baseline `8765`, weak `8767`.
-
-İsteğe bağlı ayarlar:
-
-```bash
-STYXLAB_NO_ANIMATION=1 python3 lab/tui.py
-NO_COLOR=1 python3 lab/tui.py
+```console
+$ python3 -m lab.report --port 8766 --output-dir reports/demo --timeout 5
 ```
 
-Başlangıçtaki kilit animasyonu yalnızca görsel markalamadır. Kimlik doğrulama veya erişim kontrolü sağlamaz.
+`--timeout` her yerel istek için geçerlidir (varsayılan `2` saniye, en fazla
+`30`). Raporları yayınlamadan önce gözden geçirin; ortam bilgisi içerirler.
 
-## 📡 HTTP Uç Noktaları
+---
 
-| Uç Nokta | Metot | Amaç |
+## Uç noktalar
+
+| Uç nokta | Yöntem | Amaç |
 |:--|:--:|:--|
 | `/` | GET | Eğitim ana sayfası |
 | `/health` | GET | JSON servis durumu |
-| `/api/headers` | GET | Aktif profil ve başlık metaverileri |
-| Bilinmeyen yol | GET | JSON 404 yanıtı |
+| `/api/headers` | GET | Etkin profil ve başlık üst verisi |
+| bilinmeyen yol | GET | JSON 404 yanıtı |
 
-Dahil edilen servis `127.0.0.1` adresine bağlanır.
+Servis yalnızca `127.0.0.1` üzerine bağlanır.
 
-## 📑 Değerlendirme ve Raporlar
+---
 
-Değerlendirme aracı şunları kontrol eder:
+## Testler
 
-1. Yerel servisin erişilebilirliği.
-2. Health uç noktasının yanıtı.
-3. Uç noktalar arasındaki profil tutarlılığı.
-4. Güvenlik başlığı metaverileri.
-5. Beş eğitim başlığının beklenen değerlere sahip olması veya baseline profilinde bulunmaması.
-
-Geçerli ve eksiksiz bir yanıt normalde dokuz ayrı kontrol üretir. Yerel yanıt
-alınamaz veya ayrıştırılamazsa sonuç `UNAVAILABLE` olur.
-
-### Dereceli başlık bulguları
-
-Başlığın var olması kaliteli olduğu anlamına gelmez. Tam eşleşme kontrollerinden
-sonra değerlendirme, gönderilen başlık değerlerini analiz eder ve önem
-derecelendirilmiş bulgular üretir:
-
-| Önem | Örnek |
-|:--|:--|
-| `HIGH` | `default-src *` gibi CSP joker kaynakları |
-| `MEDIUM` | CSP `unsafe-inline` / `unsafe-eval`, geçersiz `X-Frame-Options`, `Referrer-Policy: unsafe-url`, joker `Permissions-Policy` |
-| `LOW` | Eksik başlıklar, eksik `frame-ancestors`, `nosniff` olmayan içerik türü seçenekleri |
-| `INFO` | Kullanımdan kalkmış `ALLOW-FROM` söz dizimi |
-
-Her bulgu etkilenen başlığı, kısa bir açıklamayı ve düzeltme önerisini içerir.
-`weak` profili bu bulguları tetiklemek için tasarlanmıştır; `secure` profili
-hiç bulgu üretmez.
-
-| Durum | Anlamı |
-|:--|:--|
-| `PASS` | Beklenen yerel davranış gözlemlendi |
-| `FAIL` | Bir veya daha fazla kontrol eşleşmedi |
-| `UNAVAILABLE` | Gerekli yerel yanıt alınamadı veya ayrıştırılamadı |
-
-### `--fail-on` ile otomasyon
-
-Varsayılan olarak bulgular raporlanır ancak çıkış durumunu değiştirmez. CI veya
-betikler için `--fail-on`, bir bulgu eşiği karşıladığında çalışmayı başarısız
-yapar:
-
-```bash
-python3 -m lab.report --port 8767 --fail-on medium
+```console
+$ python3 -m unittest discover -s tests -v   # 51 test
+$ python3 -m compileall -q lab tests
 ```
 
-| Değer | Etki |
-|:--|:--|
-| `none` | Bulgu nedeniyle asla başarısız olma (varsayılan) |
-| `low` | LOW ve üzeri önemde başarısız ol |
-| `medium` | MEDIUM ve üzeri önemde başarısız ol |
-| `high` | HIGH ve üzeri önemde başarısız ol |
-| `critical` | Yalnızca CRITICAL bulguda başarısız ol |
+GitHub Actions iki komutu da Python 3.11, 3.12 ve 3.13 üzerinde çalıştırır.
 
-Eşik tetiklendiğinde rapor yine de yazılır; böylece kanıt korunur.
+Görselleri `python3 tools/make_assets.py` ile yeniden üretin (Pillow ve ffmpeg
+gerekir). Betik gerçek laboratuvarı başlatır, gerçek çıktıyı yakalar ve durdurur.
 
-Raporları farklı bir dizine kaydet:
+---
 
-```bash
-python3 -m lab.report --port 8766 --output-dir reports/demo --timeout 5
-```
-
-`--timeout` her yerel istek için geçerlidir (varsayılan `2` saniye, en fazla `30`).
-
-Raporları yayımlamadan önce incele. Özel kalması gereken ortam bilgileri içerebilirler.
-
-## 🧪 Testler
-
-```bash
-python3 -m unittest discover -s tests -v
-python3 -m compileall -q lab tests
-```
-
-GitHub Actions, Python 3.11, 3.12 ve 3.13 sürümlerinde otomatik kontroller gerçekleştirir.
-
-[GitHub Actions sayfasını görüntüle](https://github.com/raxwqx/STYX-LAB/actions)
-
-## 🏗️ Proje Yapısı
+## Dizin yapısı
 
 ```text
 STYX-LAB/
-├── .github/workflows/tests.yml
-├── assets/
-│   └── styx-lab-logo.png
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── methodology/
-│   └── scenarios/
 ├── lab/
-│   ├── __init__.py
-│   ├── headers.py
-│   ├── report.py
-│   ├── tui.py
-│   └── web/
-│       ├── __init__.py
-│       └── security_headers_lab.py
-├── tests/
+│   ├── headers.py                  kontroller, derecelendirme, özetler
+│   ├── report.py                   JSON + Markdown kanıtı
+│   ├── tui.py                      terminal kontrol paneli
+│   └── web/security_headers_lab.py yerel HTTP sunucusu ve profiller
+├── tests/                          51 birim ve entegrasyon testi
+├── tools/make_assets.py            gerçek çıktıdan hero, pipeline, GIF ve MP4
+├── assets/                         hero, pipeline, demo, logo
+├── docs/                           mimari, metodoloji, senaryolar
+├── .github/workflows/tests.yml     Python 3.11–3.13 CI
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
-├── install-to-repo.sh
-├── LICENSE
-├── pyproject.toml
-├── README.md
-├── README_TR.md
 ├── ROADMAP.md
 └── SECURITY.md
 ```
 
-## 🛡️ Kapsam ve Sorumlu Kullanım
-
-STYX-LAB eğitim ve savunma odaklı bir güvenlik projesidir. Mevcut sürüm:
-
-- `127.0.0.1` adresine bağlı yerel bir HTTP servisi kullanır.
-- Yalnızca yerel STYX-LAB servisini değerlendirir.
-- Harici sunucuları veya ağları taramaz.
-- Uzak alan adlarını çözümlemez.
-- Genel amaçlı bir güvenlik açığı tarayıcısı değildir.
-- Herkese açık üretim ortamında çalıştırılmak için tasarlanmamıştır.
-
-Güvenlik araçlarını yalnızca sahibi olduğun veya incelemek için açık izne sahip olduğun sistemlerde kullan. Ayrıntılar için [SECURITY.md](SECURITY.md) dosyasına bak.
-
-## 🗺️ Yol Haritası
-
-Gelecekte değerlendirilebilecek geliştirmeler arasında yeni savunma odaklı senaryolar, geliştirilmiş rapor metaverileri, daha iyi terminal erişilebilirliği ve test verilerinden oluşturulan örnek raporlar bulunur.
-
-Bunlar geleceğe yönelik fikirlerdir, mevcut sürümde bulunan özellikler değildir. Güncel plan için [ROADMAP.md](ROADMAP.md) dosyasına bak.
-
 ---
 
-## 🔭 Proje Vizyonu
+## Kapsam ve sorumlu kullanım
 
-STYX-LAB, mevcut HTTP Security Headers eğitim ortamının ötesine geçerek modüler bir siber güvenlik araştırma platformuna dönüşmek üzere tasarlanmaktadır.
+STYX-LAB savunma odaklı, eğitim amaçlı bir projedir. Mevcut uygulama:
 
-Uzun vadeli vizyonumuz üç temel alana odaklanmaktadır:
+- `127.0.0.1` üzerine bağlı yerel bir HTTP servisi sunar;
+- yalnızca bu yerel servisi değerlendirir;
+- dış hedefleri taramaz veya uzak ana bilgisayar adlarını çözmez;
+- genel amaçlı bir güvenlik açığı tarayıcısı değildir;
+- herkese açık üretim dağıtımı için tasarlanmamıştır.
 
-### 🕵️ OSINT (Açık Kaynak İstihbaratı)
-Herkese açık kaynaklardan bilgi toplama, düzenleme, ilişkilendirme ve analiz etme süreçlerini destekleyen araçlar ve iş akışları.
+Güvenlik araçlarını yalnızca sahibi olduğunuz veya açık izin aldığınız
+sistemlerde kullanın. Bkz. [SECURITY.md](SECURITY.md).
 
-### 🔬 Dijital Adli Bilişim
-Dijital kanıtların incelenmesi, dosya bütünlüğünün korunması, metadata analizi, zaman çizelgelerinin oluşturulması ve bulguların belgelenmesine yönelik yetenekler.
+## Yol haritası
 
-### 🛡️ Siber Güvenlik Laboratuvarı
-Siber güvenlik kavramlarını öğrenmek, test etmek ve anlamak için tasarlanmış izole eğitim ortamları ve uygulamalı araçlar.
+Mevcut sürüm HTTP güvenlik başlıkları laboratuvarıdır. Uzun vadeli hedef; OSINT
+iş akışları, dijital adli bilişim ve izole savunma alıştırmaları için modüler bir
+platform oluşturmak. Her yetenek kademeli olarak, gerçek olduğunda belgelenerek
+eklenir. Bkz. [ROADMAP.md](ROADMAP.md); gelecek fikirleri mevcut özellik
+değildir.
 
-### Amacımız
+## Katkı
 
-OSINT, dijital adli bilişim ve siber güvenlik araştırmalarını tek bir modüler platformda bir araya getirmek. Bu süreçte şeffaflık, tekrarlanabilir araştırma, sorumlu kullanım ve açık kaynak geliştirme ilkelerini esas almak.
+[CONTRIBUTING.md](CONTRIBUTING.md) dosyasını okuyun, deneyleri yerel ve
+tekrarlanabilir tutun, yeni davranış için test ekleyin ve kimlik bilgilerini ya
+da özel verileri asla commit etmeyin.
 
-**Geliştirme notu:** Bunlar STYX-LAB'in uzun vadeli hedefleridir. Mevcut sürüm HTTP Security Headers eğitimi ve değerlendirmesine odaklanmaktadır. Yeni yetenekler geliştirildikçe aşamalı olarak projeye eklenecek ve belgelenecektir.
+## Lisans
 
-## 🤝 Katkıda Bulunma
-
-Katkılar memnuniyetle karşılanır.
-
-1. [CONTRIBUTING.md](CONTRIBUTING.md) dosyasını oku.
-2. Deneylerini yerel, kapsamı belirli ve tekrarlanabilir tut.
-3. Yeni davranışlar için test ekle.
-4. Kimlik bilgilerini veya özel bilgileri depoya gönderme.
-
-## 📜 Lisans
-
-STYX-LAB, [MIT Lisansı](LICENSE) altında yayımlanır.
+MIT. Bkz. [LICENSE](LICENSE).
 
 ---
 
 <p align="center">
   <strong>STYX-LAB</strong><br>
-  <sub>Sorumlu araştır. Dikkatli incele. Açık geliştir.</sub><br><br>
+  <sub>Sorumlu araştır. Dikkatle incele. Açıkça geliştir.</sub><br><br>
   <a href="https://github.com/raxwqx/STYX-LAB">GitHub Deposu</a> ·
   <a href="https://github.com/raxwqx">Geliştirici Profili</a>
 </p>

@@ -1,244 +1,195 @@
 <div align="center">
-  <img src="assets/styx-lab-logo.png"
-       alt="STYX-LAB Logo"
-       width="220">
+  <img src="assets/hero.svg" alt="STYX-LAB — local-first HTTP security headers laboratory" width="100%">
+</div>
+
+<div align="center">
+
+**English** &nbsp;·&nbsp; [Türkçe](README_TR.md)
+
+[![tests](https://img.shields.io/github/actions/workflow/status/raxwqx/STYX-LAB/tests.yml?branch=main&style=flat-square&label=tests&labelColor=14243A)](https://github.com/raxwqx/STYX-LAB/actions/workflows/tests.yml)
+[![release](https://img.shields.io/github/v/release/raxwqx/STYX-LAB?style=flat-square&labelColor=14243A&color=F2E8D5)](https://github.com/raxwqx/STYX-LAB/releases)
+[![python](https://img.shields.io/badge/python-3.11%2B-F2E8D5?style=flat-square&labelColor=14243A&logo=python&logoColor=14243A)](pyproject.toml)
+[![license](https://img.shields.io/badge/license-MIT-F2E8D5?style=flat-square&labelColor=14243A)](LICENSE)
+
 </div>
 
 ---
 
+> A security headers lab that never leaves your machine.
+>
+> ◆ &nbsp;Three profiles on one loopback server.
+> ◆ &nbsp;Presence checks plus graded findings.
+> ◆ &nbsp;JSON and Markdown evidence you can archive.
 
-  # ⌬ STYX-LAB
+<div align="center">
+  <img src="assets/demo.gif" alt="A real terminal run: the weak profile is served, its headers are inspected, and the graded report trips the medium threshold" width="880">
+</div>
 
-<p align="center">
-  <strong>Local-first Cybersecurity Research & Training Laboratory</strong><br>
-  Learn. Analyze. Verify. Document.
-</p>
-
-<p align="center">
-  <a href="README.md">🇬🇧 English</a> · <a href="README_TR.md">🇹🇷 Türkçe</a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11%2B-14243A?style=for-the-badge&logo=python&logoColor=F2E8D5" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/Platform-Linux-14243A?style=for-the-badge&logo=linux&logoColor=F2E8D5" alt="Linux">
-  <img src="https://img.shields.io/badge/License-MIT-14243A?style=for-the-badge&logo=opensourceinitiative&logoColor=F2E8D5" alt="MIT License">
-  <img src="https://img.shields.io/badge/Runtime%20Dependencies-None-14243A?style=for-the-badge&logo=python&logoColor=F2E8D5" alt="No runtime dependencies">
-</p>
-
-<p align="center">
-  <a href="https://github.com/raxwqx/STYX-LAB/actions/workflows/tests.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/raxwqx/STYX-LAB/tests.yml?branch=main&style=for-the-badge&label=Python%20CI&color=14243A&logo=githubactions&logoColor=F2E8D5" alt="Python CI">
-  </a>
-</p>
+<div align="center"><sub>The GIF is not a mock-up. It is rendered from the CLI's own output by <code>tools/make_assets.py</code>.</sub></div>
 
 ---
 
-## ◈ About
+## What it is
 
-**STYX-LAB** is an open-source cybersecurity research and training laboratory focused on practical, reproducible, and responsible security learning.
+STYX-LAB is a local HTTP security headers laboratory. It serves the same small
+page under three profiles — `secure`, `baseline`, and `weak` — so you can
+inspect the real response, run nine local checks, grade the header values, and
+write the result to JSON and Markdown.
 
-The current implementation provides a local HTTP Security Headers environment built with Python. It lets learners compare three server configurations, inspect HTTP responses, perform local assessments, and generate structured evidence reports.
+Nothing is scanned, resolved, or sent beyond `127.0.0.1`. There are no
+containers, no external targets, and no runtime dependencies.
 
-> Understand the behavior. Verify the evidence. Document the result.
+<div align="center">
+  <img src="assets/pipeline.svg" alt="Assessment pipeline: profile, local server, header inspection, nine checks with grading, JSON and Markdown reports" width="100%">
+</div>
 
-## ✦ Project Highlights
+<div align="center"><sub>Every stage is a local step. The rule at the bottom is the part that makes the output safe to publish.</sub></div>
 
-| Component | Description |
-|:--|:--|
-| 🖥️ Terminal Control Deck | Interactive terminal interface |
-| 🌐 HTTP Security Lab | Local HTTP server with three profiles |
-| 🔐 Security Headers | Demonstrates five HTTP response headers |
-| 🧪 Graded Findings | Severity-ranked analysis of header quality |
-| 📊 Assessment Engine | Local configuration and response checks |
-| 📁 Evidence Reports | JSON and Markdown report generation |
-| 🧪 Automated Testing | Unit and integration tests |
-| ⚙️ GitHub Actions | Automated CI checks |
+---
 
-## 🔬 Current Research Scenario: HTTP Security Headers
+## Profiles
 
-STYX-LAB currently includes three comparison profiles:
+| Profile | Default port | Behaviour |
+|:--|:--:|:--|
+| `secure` | `8766` | Sends the configured training security headers |
+| `baseline` | `8765` | Omits the five training headers |
+| `weak` | `8767` | Sends all five headers with deliberately unsafe values |
 
-| Profile | Description |
-|:--|:--|
-| `secure` | Sends the configured training security headers |
-| `baseline` | Deliberately omits the five demonstrated headers |
-| `weak` | Sends all five headers with deliberately unsafe values |
+All three send `Cache-Control: no-store`. `baseline` and `weak` are comparison
+profiles, not deployment templates.
 
-Headers demonstrated:
+The `weak` profile is the useful one for practice: every header is present, so a
+presence-only check looks clean, while the grader shows why the values are
+dangerous. That difference is the point of the lab.
 
-- `Content-Security-Policy`
-- `X-Content-Type-Options`
-- `Referrer-Policy`
-- `Permissions-Policy`
-- `X-Frame-Options`
+### The five headers
 
-All profiles use `Cache-Control: no-store`. The `baseline` and `weak` profiles are for comparison only, not production use. The `weak` profile is useful for practicing detection: every header is present, so a presence-only check looks clean while the graded findings show real weaknesses.
+| Header | `secure` value | `weak` value |
+|:--|:--|:--|
+| `Content-Security-Policy` | `default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'` | `default-src * 'unsafe-inline' 'unsafe-eval'; object-src *` |
+| `X-Content-Type-Options` | `nosniff` | `sniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | `unsafe-url` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | `camera=*, microphone=*, geolocation=*` |
+| `X-Frame-Options` | `DENY` | `ALLOWALL` |
 
-### Assessment workflow
+---
 
-```text
-       Select a lab profile
-               |
-               v
-       Start local HTTP service
-               |
-               v
-       Inspect HTTP responses
-               |
-               v
-       Run local assessment
-               |
-               v
-       Compare expected values
-               |
-               v
-       Analyze header quality
-               |
-               v
-          Record evidence
-               |
-          _____|_____
-         |           |
-         v           v
-     JSON report  Markdown report
+## Quick start
+
+Python 3.11 or newer. No third-party runtime packages; `curl` is optional.
+
+```console
+$ git clone https://github.com/raxwqx/STYX-LAB.git
+$ cd STYX-LAB
+$ python3 lab/web/security_headers_lab.py --profile secure --port 8766
+STYX-LAB 1.1.0 | profile=secure
+STYHQ local node: http://127.0.0.1:8766/
+Press Ctrl+C to stop.
 ```
 
-**Analyst note:** A passing assessment confirms only that the local lab behaved as expected for the checks performed. It does not prove that a real application is secure.
+In a second terminal, read the headers the server actually sends:
 
-## ⚡ Quick Start
-
-### Requirements
-
-- Python 3.11 or newer
-- Linux or another supported Python environment
-- Terminal access
-- `curl` (optional)
-
-No third-party Python runtime dependencies are required.
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/raxwqx/STYX-LAB.git
-cd STYX-LAB
+```console
+$ curl -sI 127.0.0.1:8766 | grep -E 'HTTP|Server|Content-Security|X-Frame|Referrer'
+HTTP/1.0 200 OK
+Server: STYX-LAB/1.1.0
+Content-Security-Policy: default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: DENY
 ```
 
-### 2. Launch the terminal control deck
+Then assess the running profile:
 
-```bash
-python3 lab/tui.py
+```console
+$ python3 -m lab.report --port 8766
+Assessment result: PASS
+Header findings: 0
+Fail-on: none
+JSON report: reports/latest-assessment.json
+Markdown report: reports/latest-assessment.md
 ```
 
-### 3. Start a lab profile directly
+### Practise detection on the weak profile
 
-```bash
-python3 lab/web/security_headers_lab.py --profile secure --port 8766
-python3 lab/web/security_headers_lab.py --profile weak --port 8767
+```console
+$ python3 lab/web/security_headers_lab.py --profile weak --port 8767
+STYX-LAB 1.1.0 | profile=weak
+STYHQ local node: http://127.0.0.1:8767/
+Press Ctrl+C to stop.
 ```
 
-### 4. Inspect the local service
-
-```bash
-curl -i http://127.0.0.1:8766/
-curl -i http://127.0.0.1:8766/health
-curl -i http://127.0.0.1:8766/api/headers
+```console
+$ curl -sI 127.0.0.1:8767 | grep -E 'HTTP|Server|Content-Security|X-Frame|Referrer'
+HTTP/1.0 200 OK
+Server: STYX-LAB/1.1.0
+Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval'; object-src *
+Referrer-Policy: unsafe-url
+X-Frame-Options: ALLOWALL
 ```
 
-### 5. Generate an assessment report
-
-```bash
-python3 -m lab.report --port 8766
+```console
+$ python3 -m lab.report --port 8767 --fail-on medium
+error: --fail-on medium: findings at or above 'medium' severity were detected
+Assessment result: PASS
+Header findings: 8
+Fail-on: medium
+JSON report: reports/latest-assessment.json
+Markdown report: reports/latest-assessment.md
+$ echo $?
+1
 ```
 
-Default report files:
+The report is still written when the threshold trips, so the evidence survives
+the failed gate.
 
-```text
-reports/
-├── latest-assessment.json
-└── latest-assessment.md
-```
+### Control deck
 
-Stop the server with `Ctrl+C` when finished.
-
-## 🧭 Control Deck
-
-Run `python3 lab/tui.py` from the repository root.
+Prefer a menu? Run `python3 lab/tui.py` from the repository root.
 
 | Key | Action |
 |:--:|:--|
 | `1` | Launch secure profile |
 | `2` | Launch baseline profile |
-| `3` | Launch weak profile (detection practice) |
-| `4` | Run automated tests |
-| `5` | Run local assessment |
-| `6` | Read scenario guide |
+| `3` | Launch weak profile |
+| `4` | Run the test suite |
+| `5` | Run a local assessment |
+| `6` | Read the scenario guide |
 | `0` | Exit |
 
-Default ports: secure `8766`, baseline `8765`, weak `8767`.
+`STYXLAB_NO_ANIMATION=1` and `NO_COLOR=1` are supported. The startup lock
+animation is branding, not access control.
 
-Optional settings:
+---
 
-```bash
-STYXLAB_NO_ANIMATION=1 python3 lab/tui.py
-NO_COLOR=1 python3 lab/tui.py
-```
+## Graded findings
 
-The startup lock animation is visual branding only. It is not authentication or access control.
+Presence is not quality. The exact-match checks ask whether the lab behaved as
+declared; the grader asks whether the declared values are safe. A real run
+against the `weak` profile produces:
 
-## 📡 Endpoints
+| Severity | Header | Finding |
+|:--|:--|:--|
+| **HIGH** | `Content-Security-Policy` | CSP allows every source (`*`) in `default-src`, `object-src` |
+| **MEDIUM** | `X-Frame-Options` | X-Frame-Options has an invalid value: `ALLOWALL` |
+| **MEDIUM** | `Referrer-Policy` | Referrer-Policy uses `unsafe-url` and leaks full URLs |
+| **LOW** | `X-Content-Type-Options` | X-Content-Type-Options is `sniff`, not `nosniff` |
 
-| Endpoint | Method | Purpose |
-|:--|:--:|:--|
-| `/` | GET | Training homepage |
-| `/health` | GET | JSON service status |
-| `/api/headers` | GET | Active profile and header metadata |
-| Unknown path | GET | JSON 404 response |
-
-The included service binds to `127.0.0.1`.
-
-## 📑 Assessment & Reports
-
-The assessment tool checks:
-
-1. Local service availability.
-2. Health endpoint response.
-3. Profile consistency between endpoints.
-4. Header metadata.
-5. Expected values or absence of the five training headers.
-
-A complete valid response normally produces nine individual checks. If the
-local response cannot be obtained or parsed, the result is `UNAVAILABLE`.
-
-### Graded header findings
-
-Presence is not quality. After the exact-match checks, the assessment analyzes
-the header values actually sent and produces severity-ranked findings:
-
-| Severity | Example |
-|:--|:--|
-| `HIGH` | CSP wildcard sources such as `default-src *` |
-| `MEDIUM` | CSP `unsafe-inline` / `unsafe-eval`, invalid `X-Frame-Options`, `Referrer-Policy: unsafe-url`, wildcard `Permissions-Policy` |
-| `LOW` | Missing headers, missing `frame-ancestors`, non-`nosniff` content type options |
-| `INFO` | Obsolete `ALLOW-FROM` syntax |
-
-Every finding includes the affected header, a short explanation, and a
-remediation hint. The `weak` profile is designed to trigger them while the
-`secure` profile produces none.
+Eight findings in total: **1 HIGH, 5 MEDIUM, 2 LOW**. The `secure` profile
+produces none.
 
 | Status | Meaning |
 |:--|:--|
-| `PASS` | Expected local behavior observed |
+| `PASS` | The lab matched its declared profile |
 | `FAIL` | One or more checks did not match |
-| `UNAVAILABLE` | Required local response could not be obtained or parsed |
+| `UNAVAILABLE` | The local response could not be obtained or parsed |
 
-### Automation with `--fail-on`
+A `PASS` is not a security audit. The weak profile passes all nine checks and
+still produces eight findings — that gap is the lesson.
 
-By default, findings are reported without changing the exit status. For CI or
-scripts, `--fail-on` fails the run when a finding meets a threshold:
+### The `--fail-on` gate
 
-```bash
-python3 -m lab.report --port 8767 --fail-on medium
-```
+By default findings do not change the exit status. For CI or scripts, set a
+threshold:
 
 | Value | Effect |
 |:--|:--|
@@ -248,114 +199,108 @@ python3 -m lab.report --port 8767 --fail-on medium
 | `high` | Fail on HIGH or worse |
 | `critical` | Fail on CRITICAL only |
 
-The report is still written when the threshold trips, so evidence is preserved.
+---
 
-Generate reports in a separate directory:
+## Reports
 
-```bash
-python3 -m lab.report --port 8766 --output-dir reports/demo --timeout 5
+```text
+reports/
+├── latest-assessment.json
+└── latest-assessment.md
+```
+
+The JSON report records the tool version, target, profile, scope, every check
+with its evidence, the finding summary, and each finding with a remediation
+hint. The Markdown report is the same evidence as a reviewable table.
+
+```console
+$ python3 -m lab.report --port 8766 --output-dir reports/demo --timeout 5
 ```
 
 `--timeout` applies to each local request (default `2` seconds, maximum `30`).
+Review reports before publishing them; they contain environment details.
 
-Review reports before publishing them. They may contain environment information that should remain private.
+---
 
-## 🧪 Testing
+## Endpoints
 
-```bash
-python3 -m unittest discover -s tests -v
-python3 -m compileall -q lab tests
+| Endpoint | Method | Purpose |
+|:--|:--:|:--|
+| `/` | GET | Training homepage |
+| `/health` | GET | JSON service status |
+| `/api/headers` | GET | Active profile and header metadata |
+| unknown path | GET | JSON 404 response |
+
+The service binds to `127.0.0.1` only.
+
+---
+
+## Testing
+
+```console
+$ python3 -m unittest discover -s tests -v   # 51 tests
+$ python3 -m compileall -q lab tests
 ```
 
-GitHub Actions runs automated checks with Python 3.11, 3.12, and 3.13.
+GitHub Actions runs both commands on Python 3.11, 3.12, and 3.13.
 
-[View GitHub Actions](https://github.com/raxwqx/STYX-LAB/actions)
+Regenerate the artwork with `python3 tools/make_assets.py` (needs Pillow and
+ffmpeg). The script starts the real lab, captures the real output, and stops it
+again.
 
-## 🏗️ Project Structure
+---
+
+## Layout
 
 ```text
 STYX-LAB/
-├── .github/workflows/tests.yml
-├── assets/
-│   └── styx-lab-logo.png
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── methodology/
-│   └── scenarios/
 ├── lab/
-│   ├── __init__.py
-│   ├── headers.py
-│   ├── report.py
-│   ├── tui.py
-│   └── web/
-│       ├── __init__.py
-│       └── security_headers_lab.py
-├── tests/
+│   ├── headers.py                  checks, grading, summaries
+│   ├── report.py                   JSON + Markdown evidence
+│   ├── tui.py                      terminal control deck
+│   └── web/security_headers_lab.py local HTTP server and profiles
+├── tests/                          51 unit and integration tests
+├── tools/make_assets.py            hero, pipeline, GIF and MP4 from real output
+├── assets/                         hero, pipeline, demo, logo
+├── docs/                           architecture, methodology, scenarios
+├── .github/workflows/tests.yml     Python 3.11–3.13 CI
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
-├── install-to-repo.sh
-├── LICENSE
-├── pyproject.toml
-├── README.md
-├── README_TR.md
 ├── ROADMAP.md
 └── SECURITY.md
 ```
 
-## 🛡️ Scope & Responsible Use
-
-STYX-LAB is an educational and defensive security project. The current implementation:
-
-- Uses a local HTTP service bound to `127.0.0.1`.
-- Assesses only the local STYX-LAB service.
-- Does not scan external hosts or networks.
-- Does not resolve remote hostnames.
-- Is not a general-purpose vulnerability scanner.
-- Is not intended for public production deployment.
-
-Use security tools only on systems you own or have explicit permission to assess. See [SECURITY.md](SECURITY.md).
-
-## 🗺️ Roadmap
-
-Potential future improvements include additional self-contained defensive scenarios, improved report metadata and presentation, better terminal accessibility, and example reports from test fixtures.
-
-These are future ideas, not features currently included. See [ROADMAP.md](ROADMAP.md).
-
 ---
 
-## 🔭 Project Vision
+## Scope and responsible use
 
-STYX-LAB is designed to grow beyond its current HTTP Security Headers training environment into a modular cybersecurity research platform.
+STYX-LAB is a defensive, educational project. The current implementation:
 
-The long-term vision includes three main areas:
+- serves a local HTTP service bound to `127.0.0.1`;
+- assesses only that local service;
+- does not scan external hosts or resolve remote hostnames;
+- is not a general-purpose vulnerability scanner;
+- is not intended for public production deployment.
 
-### 🕵️ OSINT (Open-Source Intelligence)
-Tools and workflows for collecting, organizing, correlating, and analyzing publicly available information.
+Use security tools only on systems you own or have explicit permission to
+assess. See [SECURITY.md](SECURITY.md).
 
-### 🔬 Digital Forensics
-Capabilities for examining digital evidence, preserving file integrity, analyzing metadata, building timelines, and documenting findings.
+## Roadmap
 
-### 🛡️ Cybersecurity Laboratory
-A collection of isolated, educational environments and practical tools for learning, testing, and understanding cybersecurity concepts.
+The current release is the HTTP security headers lab. The longer-term goal is a
+modular platform for OSINT workflows, digital forensics, and isolated defensive
+exercises, added gradually and documented as each one becomes real. See
+[ROADMAP.md](ROADMAP.md); future ideas are not current features.
 
-### Our Goal
+## Contributing
 
-To bring OSINT, digital forensics, and cybersecurity research together under one modular platform, with an emphasis on transparency, reproducibility, responsible research, and open-source development.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), keep experiments local and
+reproducible, add tests for new behaviour, and never commit credentials or
+private data.
 
-**Development note:** These are long-term project goals. The current implementation focuses on HTTP Security Headers training and assessment. Future capabilities will be introduced gradually and documented as they become available.
+## License
 
-## 🤝 Contributing
-
-Contributions are welcome.
-
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
-2. Keep experiments local, scoped, and reproducible.
-3. Include tests for new behavior.
-4. Never commit credentials or private information.
-
-## 📜 License
-
-STYX-LAB is released under the [MIT License](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 ---
 
