@@ -149,12 +149,28 @@ def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
         return ImageFont.load_default()
 
 
+def _panel_mask():
+    scale = 4
+    mask = Image.new("L", (WIDTH * scale, HEIGHT * scale), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rounded_rectangle(
+        (12 * scale, 12 * scale, (WIDTH - 12) * scale, (HEIGHT - 12) * scale),
+        radius=14 * scale,
+        fill=255,
+    )
+    return mask.resize((WIDTH, HEIGHT), Image.LANCZOS)
+
+
+MASK = _panel_mask()
+
+
 def frame(lines, cursor=True, inline=False):
     image = Image.new("RGB", (WIDTH, HEIGHT), BG)
     draw = ImageDraw.Draw(image)
 
+    draw.rectangle((12, 12, WIDTH - 12, HEIGHT - 12), fill=PANEL)
     draw.rounded_rectangle(
-        (12, 12, WIDTH - 12, HEIGHT - 12), radius=14, fill=PANEL, outline=EDGE
+        (12, 12, WIDTH - 12, HEIGHT - 12), radius=14, outline=EDGE
     )
     draw.line((12, 62, WIDTH - 12, 62), fill=EDGE)
     for index in range(3):
@@ -202,7 +218,8 @@ def frame(lines, cursor=True, inline=False):
             )
         else:
             draw.rectangle((PAD, y + 3, PAD + 9, y + 19), fill=CREAM)
-    return image
+
+    return Image.composite(image, Image.new("RGB", (WIDTH, HEIGHT), BG), MASK)
 
 
 def build_gif(lines):
@@ -234,6 +251,7 @@ def build_gif(lines):
         push(cursor=False, delay=380)
 
     palette = frame(lines, cursor=False).quantize(colors=96)
+    bg_index = palette.getpixel((0, 0))
     indexed = [
         image.quantize(palette=palette, dither=Image.Dither.NONE)
         for image in frames
@@ -246,6 +264,7 @@ def build_gif(lines):
         loop=0,
         optimize=True,
         disposal=2,
+        transparency=bg_index,
     )
     return frames, durations
 
@@ -302,54 +321,113 @@ def build_mark():
 
 def build_hero():
     mark = base64.b64encode((ASSETS / "styx-mark.png").read_bytes()).decode()
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400"
-     viewBox="0 0 1280 400" role="img" aria-label="STYX-LAB">
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420"
+     viewBox="0 0 1280 420" role="img" aria-label="STYX-LAB">
   <defs>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M40 0H0V40" fill="none" stroke="{NAVY_GRID}" stroke-width="1"/>
-    </pattern>
-    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="{CREAM}" stop-opacity="0.50"/>
-      <stop offset="0.6" stop-color="{CREAM}" stop-opacity="0.10"/>
-      <stop offset="1" stop-color="{CREAM}" stop-opacity="0"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a2d46"/>
+      <stop offset="0.55" stop-color="#122235"/>
+      <stop offset="1" stop-color="#0b1624"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.80" cy="0.45" r="0.5">
-      <stop offset="0" stop-color="{CREAM}" stop-opacity="0.07"/>
+    <radialGradient id="glow" cx="0.78" cy="0.26" r="0.62">
+      <stop offset="0" stop-color="{CREAM}" stop-opacity="0.12"/>
       <stop offset="1" stop-color="{CREAM}" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="glow2" cx="0.10" cy="0.92" r="0.55">
+      <stop offset="0" stop-color="#4d7bab" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#4d7bab" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e3350" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="{CREAM}" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="{CREAM}" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="{CREAM}" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="card">
+      <rect x="1" y="1" width="1278" height="418" rx="22"/>
+    </clipPath>
   </defs>
 
-  <rect width="1280" height="400" fill="{NAVY}"/>
-  <rect width="1280" height="400" fill="url(#grid)"/>
-  <rect width="1280" height="400" fill="url(#glow)"/>
-  <rect width="1280" height="2" fill="url(#fade)"/>
+  <rect x="1" y="1" width="1278" height="418" rx="22" fill="url(#bg)"/>
+  <g clip-path="url(#card)">
+    <rect width="1280" height="420" fill="url(#grid)" opacity="0.5"/>
+    <rect width="1280" height="420" fill="url(#glow)"/>
+    <rect width="1280" height="420" fill="url(#glow2)"/>
+    <path d="M0 0 L470 0 L250 420 L0 420Z" fill="{CREAM}" opacity="0.025"/>
+  </g>
+  <rect x="1" y="1" width="1278" height="418" rx="22"
+        fill="none" stroke="#2c4058"/>
 
-  <image x="952" y="76" width="252" height="250"
+  <g stroke="{CREAM}" stroke-opacity="0.22" stroke-width="1.5" fill="none">
+    <path d="M26 48V26H48"/>
+    <path d="M1232 26H1254V48"/>
+    <path d="M26 372V394H48"/>
+    <path d="M1254 372V394H1232"/>
+  </g>
+
+  <text x="1208" y="52" text-anchor="end"
+        font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="11"
+        letter-spacing="3" fill="#7d8ea4">LAB 01 / HEADERS</text>
+
+  <line x1="72" y1="86" x2="98" y2="86" stroke="{CREAM}" stroke-opacity="0.5"/>
+  <text x="110" y="91" font-family="Fira Code, DejaVu Sans Mono, monospace"
+        font-size="15" letter-spacing="7" fill="{NAVY_DIM}">LOCAL-FIRST SECURITY LABORATORY</text>
+
+  <text x="70" y="212" font-family="Fira Code, DejaVu Sans Mono, monospace"
+        font-size="94" font-weight="700" letter-spacing="2" fill="{CREAM}">STYX-LAB</text>
+
+  <text x="72" y="252" font-family="Fira Code, DejaVu Sans Mono, monospace"
+        font-size="18" fill="{TEXT}">HTTP security headers &#183; graded findings &#183; evidence reports</text>
+
+  <g font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="12">
+    <rect x="72" y="286" width="146" height="32" rx="16"
+          fill="#0f1d2f" fill-opacity="0.72" stroke="#2c4058"/>
+    <circle cx="92" cy="302" r="3.5" fill="#7fc8a0"/>
+    <text x="104" y="306" fill="#d8d0be">secure</text>
+    <text x="204" y="306" text-anchor="end" fill="#7c8a9e">8766</text>
+
+    <rect x="230" y="286" width="158" height="32" rx="16"
+          fill="#0f1d2f" fill-opacity="0.72" stroke="#2c4058"/>
+    <circle cx="250" cy="302" r="3.5" fill="#93a0b4"/>
+    <text x="262" y="306" fill="#d8d0be">baseline</text>
+    <text x="374" y="306" text-anchor="end" fill="#7c8a9e">8765</text>
+
+    <rect x="400" y="286" width="136" height="32" rx="16"
+          fill="#0f1d2f" fill-opacity="0.72" stroke="#2c4058"/>
+    <circle cx="420" cy="302" r="3.5" fill="{WARN}"/>
+    <text x="432" y="306" fill="#d8d0be">weak</text>
+    <text x="522" y="306" text-anchor="end" fill="#7c8a9e">8767</text>
+  </g>
+
+  <g font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="12.5" fill="#8fa0b5">
+    <text x="72" y="370">5 headers</text>
+    <text x="148" y="370" fill="#51627a">&#183;</text>
+    <text x="164" y="370">9 checks</text>
+    <text x="238" y="370" fill="#51627a">&#183;</text>
+    <text x="254" y="370">0 external hosts</text>
+  </g>
+
+  <line x1="72" y1="394" x2="1208" y2="394" stroke="url(#fade)"/>
+
+  <image x="966" y="52" width="228" height="226"
          href="data:image/png;base64,{mark}"/>
 
-  <text x="80" y="114" font-family="Fira Code, DejaVu Sans Mono, monospace"
-        font-size="16" letter-spacing="7.5" fill="{NAVY_DIM}">LOCAL-FIRST SECURITY LABORATORY</text>
+  <rect x="966" y="294" width="228" height="30" rx="15"
+        fill="#0f1d2f" fill-opacity="0.72" stroke="#2c4058"/>
+  <text x="1080" y="313" text-anchor="middle"
+        font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="11"
+        letter-spacing="1.5" fill="#a9b6c8">127.0.0.1 only</text>
+  <text x="1080" y="350" text-anchor="middle"
+        font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="10"
+        letter-spacing="1" fill="#6f8198">no external hosts contacted</text>
+  <text x="1080" y="378" text-anchor="middle"
+        font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="11"
+        letter-spacing="1" fill="#7d8ea4">v1.1.0</text>
 
-  <text x="78" y="236" font-family="Fira Code, DejaVu Sans Mono, monospace"
-        font-size="92" font-weight="700" letter-spacing="2" fill="{CREAM}">STYX-LAB</text>
-
-  <line x1="80" y1="272" x2="700" y2="272" stroke="{NAVY_EDGE}"/>
-
-  <text x="80" y="314" font-family="Fira Code, DejaVu Sans Mono, monospace"
-        font-size="19" fill="{TEXT}">HTTP security headers &#183; graded findings &#183; evidence reports</text>
-
-  <g font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="14" fill="{NAVY_DIM}">
-    <text x="80" y="356">3 profiles</text>
-    <text x="232" y="356">9 checks</text>
-    <text x="376" y="356">8 findings</text>
-    <text x="552" y="356">0 external hosts</text>
-  </g>
-
-  <g font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="13">
-    <rect x="760" y="340" width="78" height="22" rx="11"
-          fill="none" stroke="{NAVY_EDGE}"/>
-    <text x="799" y="355" text-anchor="middle" fill="{NAVY_DIM}">v1.1.0</text>
-  </g>
+  <line x1="890" y1="56" x2="890" y2="368" stroke="{CREAM}" stroke-opacity="0.10"
+        stroke-dasharray="2 7"/>
 </svg>
 """
     (ASSETS / "hero.svg").write_text(svg, encoding="utf-8")
@@ -363,23 +441,26 @@ def build_pipeline():
         ("ASSESS", "9 checks + grading"),
         ("REPORT", "JSON + Markdown"),
     ]
-    width, gap, left, top, height = 196, 36, 80, 92, 84
+    width, gap, left, top, height = 196, 36, 72, 88, 88
     parts = []
     for index, (title, sub) in enumerate(nodes):
         x = left + index * (width + gap)
         begin = f"{index * 1.2:.1f}s"
         parts.append(
             f'<g>'
-            f'<rect x="{x}" y="{top}" width="{width}" height="{height}" rx="10" '
-            f'fill="{PANEL}" stroke="{NAVY_EDGE}"/>'
-            f'<rect x="{x}" y="{top}" width="{width}" height="{height}" rx="10" '
+            f'<rect x="{x}" y="{top}" width="{width}" height="{height}" rx="12" '
+            f'fill="#0f1d2f" fill-opacity="0.72" stroke="{NAVY_EDGE}"/>'
+            f'<rect x="{x}" y="{top}" width="{width}" height="{height}" rx="12" '
             f'fill="none" stroke="{CREAM}" stroke-opacity="0.25">'
             f'<animate attributeName="stroke-opacity" values="0.18;0.85;0.18" '
             f'dur="6s" begin="{begin}" repeatCount="indefinite"/></rect>'
-            f'<text x="{x + width / 2}" y="{top + 34}" text-anchor="middle" '
+            f'<text x="{x + 16}" y="{top + 22}" '
+            f'font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="9" '
+            f'letter-spacing="1" fill="#6f8198">0{index + 1}</text>'
+            f'<text x="{x + width / 2}" y="{top + 44}" text-anchor="middle" '
             f'font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="16" '
             f'letter-spacing="3" fill="{CREAM}">{title}</text>'
-            f'<text x="{x + width / 2}" y="{top + 58}" text-anchor="middle" '
+            f'<text x="{x + width / 2}" y="{top + 68}" text-anchor="middle" '
             f'font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="10" '
             f'fill="{NAVY_DIM}">{sub}</text>'
             f'</g>'
@@ -392,9 +473,10 @@ def build_pipeline():
                 f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" '
                 f'stroke="{CREAM}" stroke-opacity="0.30"/>'
                 f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" '
-                f'stroke="{CREAM}" stroke-opacity="0.55" stroke-dasharray="4 4">'
+                f'stroke="{CREAM}" stroke-opacity="0.70" stroke-dasharray="4 4">'
                 f'<animate attributeName="stroke-dashoffset" values="8;0" '
                 f'dur="1.1s" repeatCount="indefinite"/></line>'
+                f'<path d="M{x2} {y} l-4 -2.5 v5 z" fill="{CREAM}" fill-opacity="0.65"/>'
             )
     dots = "".join(
         f'<circle cx="{left}" cy="{top + height / 2}" r="3" fill="{CREAM}" opacity="0.9">'
@@ -402,18 +484,59 @@ def build_pipeline():
         f'path="M{left} {top + height / 2} H{left + 4 * (width + gap) + width}"/></circle>'
         for i in range(2)
     )
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="240"
-     viewBox="0 0 1280 240" role="img" aria-label="STYX-LAB assessment pipeline">
-  <rect width="1280" height="240" fill="{NAVY}"/>
-  <text x="80" y="52" font-family="Fira Code, DejaVu Sans Mono, monospace"
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="260"
+     viewBox="0 0 1280 260" role="img" aria-label="STYX-LAB assessment pipeline">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a2d46"/>
+      <stop offset="0.55" stop-color="#122235"/>
+      <stop offset="1" stop-color="#0b1624"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e3350" stroke-width="1"/>
+    </pattern>
+    <clipPath id="card"><rect x="1" y="1" width="1278" height="258" rx="22"/></clipPath>
+  </defs>
+  <rect x="1" y="1" width="1278" height="258" rx="22" fill="url(#bg)"/>
+  <g clip-path="url(#card)">
+    <rect width="1280" height="260" fill="url(#grid)" opacity="0.45"/>
+  </g>
+  <rect x="1" y="1" width="1278" height="258" rx="22" fill="none" stroke="#2c4058"/>
+
+  <text x="72" y="50" font-family="Fira Code, DejaVu Sans Mono, monospace"
         font-size="13" letter-spacing="6" fill="{NAVY_DIM}">ASSESSMENT PIPELINE</text>
+  <text x="1208" y="50" text-anchor="end"
+        font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="10"
+        letter-spacing="2" fill="#6f8198">9 CHECKS &#183; 5 HEADERS</text>
   {''.join(parts)}
   {dots}
-  <text x="80" y="212" font-family="Fira Code, DejaVu Sans Mono, monospace"
+  <text x="72" y="222" font-family="Fira Code, DejaVu Sans Mono, monospace"
         font-size="12" letter-spacing="1" fill="#7d8ea4">loopback only &#183; no external hosts contacted</text>
+  <text x="1208" y="222" text-anchor="end"
+        font-family="Fira Code, DejaVu Sans Mono, monospace" font-size="11"
+        letter-spacing="1" fill="#6f8198">v1.1.0</text>
 </svg>
 """
     (ASSETS / "pipeline.svg").write_text(svg, encoding="utf-8")
+
+
+def build_divider():
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="28"
+     viewBox="0 0 1280 28" role="img" aria-label="">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8b949e" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#8b949e" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#8b949e" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <line x1="0" y1="14" x2="614" y2="14" stroke="url(#fade)" stroke-width="1.2"/>
+  <line x1="666" y1="14" x2="1280" y2="14" stroke="url(#fade)" stroke-width="1.2"/>
+  <rect x="634" y="8" width="12" height="12" transform="rotate(45 640 14)"
+        fill="none" stroke="#8b949e" stroke-opacity="0.95"/>
+</svg>
+"""
+    (ASSETS / "divider.svg").write_text(svg, encoding="utf-8")
 
 
 def main():
@@ -421,6 +544,7 @@ def main():
     build_mark()
     build_hero()
     build_pipeline()
+    build_divider()
     lines = transcript()
     frames, durations = build_gif(lines)
     build_mp4(frames, durations)
