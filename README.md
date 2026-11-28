@@ -45,7 +45,9 @@ containers, no external targets, and no runtime dependencies.
 
 <div align="center"><sub>Every stage is a local step. The rule at the bottom is the part that makes the output safe to publish.</sub></div>
 
----
+<div align="center">
+  <img src="assets/divider.svg" alt="" width="100%">
+</div>
 
 ## Profiles
 

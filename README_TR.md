@@ -45,7 +45,9 @@ yok, dış hedef yok, çalışma zamanı bağımlılığı yok.
 
 <div align="center"><sub>Her aşama yerel bir adım. Alttaki kural, çıktıyı yayınlanabilir kılan kısım.</sub></div>
 
----
+<div align="center">
+  <img src="assets/divider.svg" alt="" width="100%">
+</div>
 
 ## Profiller
 
